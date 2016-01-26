@@ -9,9 +9,12 @@
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
+from ivf.io_util.image import loadRGBA
+from ivf.scene.data import Data
+
 
 ## Scene
-class Scene(QObject):
+class Scene(QObject, Data):
     updatedImage = pyqtSignal(object)
     updatedMessage = pyqtSignal(str)
 
@@ -20,8 +23,14 @@ class Scene(QObject):
         super(Scene, self).__init__()
 
         self._image = None
+        self._image_file = ""
         self._layers = []
         self._selection = None
+
+    def setImageFile(self, image_file):
+        self._image_file = image_file
+        image = loadRGBA(self._image_file)
+        self.setImage(image)
 
     def setImage(self, image):
         self._image = image
@@ -44,4 +53,13 @@ class Scene(QObject):
 
     def setMessage(self, message):
         self.updatedMessage.emit(message)
+
+    ## dictionary data for writeJson method.
+    def _dataDict(self):
+        data = {"image_file": self._image_file}
+        return data
+
+    ## set dictionary data for loadJson method.
+    def _setDataDict(self, data):
+        self.setImageFile(data["image_file"])
 

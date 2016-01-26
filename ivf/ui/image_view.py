@@ -142,8 +142,6 @@ class ImageView(QWidget):
         self._cameraTool.mousePressEvent(e)
 
         if self._tool is not None:
-            image_size = self._q_image.size()
-            print "image size: ", str(image_size)
             self._tool.mousePressEvent(e)
 
     def mouseReleaseEvent(self, e):

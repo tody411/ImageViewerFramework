@@ -22,7 +22,7 @@ class LoadImageCommand(BaseCommand):
         self._show_ui = image_file is ""
         self._root_dir = os.path.expanduser('~')
         action = self.action()
-        action.setShortcut("Ctrl+O")
+        action.setShortcut("Ctrl+I")
 
     def _runImp(self):
         if self._show_ui:
@@ -31,8 +31,7 @@ class LoadImageCommand(BaseCommand):
         if self._image_file is "":
             return
 
-        image = loadRGBA(self._image_file)
-        self._scene.setImage(image)
+        self._scene.setImageFile(self._image_file)
         self._input_info = self._image_file
         self._root_dir = os.path.dirname(self._image_file)
 
@@ -44,7 +43,7 @@ class SaveImageCommand(BaseCommand):
         self._show_ui = image_file is ""
         self._root_dir = os.path.expanduser('~')
         action = self.action()
-        action.setShortcut("Ctrl+S")
+        action.setShortcut("Ctrl+E")
 
     def _runImp(self):
         if self._show_ui:

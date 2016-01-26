@@ -15,6 +15,10 @@ from ivf.io_util.image import loadRGBA
 from ivf.scene.scene import Scene
 from ivf.cmds.image import LoadImageCommand, SaveImageCommand
 from ivf.cmds.quit import QuitCommand
+from ivf.cmds.stroke_tool import StrokeToolCommand
+from ivf.cmds.scene import LoadSceneCommand, SaveSceneCommand
+from ivf.cmds.resize import ResizeImageCommand
+from ivf.cmds.graph_cut import GraphCutCommand
 
 
 ## Main Window
@@ -57,12 +61,19 @@ class MainWindow(QMainWindow):
     def _createMenus(self):
         menu_bar = self.menuBar()
         file_menu = menu_bar.addMenu("&File")
+        self._addCommand(LoadSceneCommand(self._scene, parent=file_menu), file_menu)
+        self._addCommand(SaveSceneCommand(self._scene, parent=file_menu), file_menu)
         self._addCommand(LoadImageCommand(self._scene, parent=file_menu), file_menu)
         self._addCommand(SaveImageCommand(self._scene, parent=file_menu), file_menu)
         self._addCommand(QuitCommand(self._scene, parent=file_menu), file_menu)
 
-        edit_menu = menu_bar.addMenu("&Edit")
+        menu_bar = self.menuBar()
+        operation_menu = menu_bar.addMenu("&Image Operation")
+        self._addCommand(ResizeImageCommand(self._scene, (0.5, 0.5), "&Down scale", parent=operation_menu), operation_menu)
 
+        tool_menu = menu_bar.addMenu("&Tool")
+        self._addCommand(GraphCutCommand(self._scene, self._image_view, parent=tool_menu), tool_menu)
+        self._addCommand(StrokeToolCommand(self._scene, self._image_view, parent=tool_menu), tool_menu)
 
     def _addCommand(self, cmd, parent_menu):
         parent_menu.addAction(cmd.action())
