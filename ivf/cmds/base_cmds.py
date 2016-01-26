@@ -5,15 +5,35 @@
 #  @author      tody
 #  @date        2016/01/25
 
+from PyQt4.QtGui import *
+from PyQt4.QtCore import *
+
 from ivf.util.timer import Timer
 
 
-class BaseCommand(object):
-    def __init__(self, scene, name=""):
+class BaseCommand(QObject):
+    def __init__(self, scene, name="", parent=None):
+        super(BaseCommand, self).__init__()
         self._name = name
         self._scene = scene
         self._input_info = ""
         self._output_info = ""
+        self._action = None
+        self._parent = parent
+
+    def name(self):
+        return self._name
+
+    def action(self):
+        if self._action is not None:
+            return self._action
+
+        def cmdFunc():
+            self.run()
+
+        self._action = QAction(self._name, self._parent)
+        self._action.triggered.connect(cmdFunc)
+        return self._action
 
     def run(self):
         timer = Timer(self._name)

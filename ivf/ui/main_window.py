@@ -13,7 +13,8 @@ from PyQt4.QtCore import *
 from ivf.ui.image_view import ImageView
 from ivf.io_util.image import loadRGBA
 from ivf.scene.scene import Scene
-from ivf.cmds.image import LoadImageCommand
+from ivf.cmds.image import LoadImageCommand, SaveImageCommand
+from ivf.cmds.quit import QuitCommand
 
 
 ## Main Window
@@ -31,8 +32,12 @@ class MainWindow(QMainWindow):
         self.setStatusBar(self._status_bar)
         self.showMaximized()
 
+        self._createMenus()
+
         self._scene.updatedImage.connect(self._image_view.render)
         self._scene.updatedMessage.connect(self._status_bar.showMessage)
+        self.setFocusPolicy(Qt.StrongFocus)
+        self.setWindowTitle("Image Viewer")
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
@@ -48,6 +53,19 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, event):
         QApplication.closeAllWindows()
+
+    def _createMenus(self):
+        menu_bar = self.menuBar()
+        file_menu = menu_bar.addMenu("&File")
+        self._addCommand(LoadImageCommand(self._scene, parent=file_menu), file_menu)
+        self._addCommand(SaveImageCommand(self._scene, parent=file_menu), file_menu)
+        self._addCommand(QuitCommand(self._scene, parent=file_menu), file_menu)
+
+        edit_menu = menu_bar.addMenu("&Edit")
+
+
+    def _addCommand(self, cmd, parent_menu):
+        parent_menu.addAction(cmd.action())
 
 
 def runGUI():

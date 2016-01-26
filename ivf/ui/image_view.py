@@ -113,6 +113,13 @@ class ImageView(QWidget):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
 
+        gradient = QLinearGradient (0, 0, 0, self.height())
+        gradient.setColorAt(0.0, QColor.fromRgbF(0.5, 0.6, 0.7))
+        gradient.setColorAt(1.0, QColor.fromRgbF(0.1, 0.1, 0.1))
+
+        painter.setBrush(gradient)
+        painter.drawRect(0, 0, self.width(), self.height())
+
         painter.setWorldTransform(self.transform())
 
         if self._q_image is None:
