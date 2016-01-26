@@ -11,6 +11,7 @@ from PyQt4.QtCore import *
 
 from ivf.io_util.image import loadRGBA
 from ivf.scene.data import Data
+from ivf.scene.stroke import StrokeSets
 
 
 ## Scene
@@ -25,6 +26,7 @@ class Scene(QObject, Data):
         self._image = None
         self._image_file = ""
         self._layers = []
+        self._stroke_sets = StrokeSets()
         self._selection = None
 
     def setImageFile(self, image_file):
@@ -38,6 +40,9 @@ class Scene(QObject, Data):
 
     def image(self):
         return self._image
+
+    def strokeSets(self):
+        return self._stroke_sets
 
     def setLayers(self, layers):
         self._layers = layers
@@ -57,9 +62,10 @@ class Scene(QObject, Data):
     ## dictionary data for writeJson method.
     def _dataDict(self):
         data = {"image_file": self._image_file}
+        data["stroke"] = self._stroke_sets._dataDict()
         return data
 
     ## set dictionary data for loadJson method.
     def _setDataDict(self, data):
         self.setImageFile(data["image_file"])
-
+        self._stroke_sets._setDataDict(data["stroke"])

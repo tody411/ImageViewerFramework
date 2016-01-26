@@ -11,7 +11,7 @@ import cv2
 
 from ivf.cmds.base_cmds import BaseCommand
 from ivf.ui.tool.stroke_tool import StrokeTool
-from ivf.cv.image import rgb
+from ivf.cv.image import rgb, to8U
 
 
 class GraphCutCommand(BaseCommand):
@@ -22,6 +22,8 @@ class GraphCutCommand(BaseCommand):
         self._tool.setStrokeEditedCallBack(self._strokeEdited)
 
     def _runImp(self):
+        stroke_sets = self._scene.strokeSets()
+        self._tool.setStrokeSets(stroke_sets)
         self._view.setTool(self._tool)
 
     def _strokeEdited(self, stroke_sets):
@@ -33,7 +35,7 @@ class GraphCutCommand(BaseCommand):
 
         image = self._scene.image()
 
-        image_rgb = rgb(image)
+        image_rgb = to8U(rgb(image))
 
         mask = np.zeros(image.shape[:2], np.uint8)
         mask.fill(cv2.GC_PR_BGD)
@@ -55,6 +57,9 @@ class GraphCutCommand(BaseCommand):
         fgdModel = np.zeros((1,65),np.float64)
 
         cv2.imshow('Input Mask', mask)
-        mask, bgdModel, fgdModel = cv2.grabCut(image_rgb, mask, None, bgdModel, fgdModel, 5, cv2.GC_INIT_WITH_MASK)
-        mask[(mask==int(cv2.GC_FGD)) | (mask==int(cv2.GC_PR_FGD))] = 255
-        cv2.imshow('Output Mask', mask)
+        gc_result = cv2.grabCut(image_rgb, mask, None, bgdModel, fgdModel, 5, cv2.GC_INIT_WITH_MASK)
+
+        if gc_result:
+            mask, bgdModel, fgdModel = gc_result
+            mask[(mask==int(cv2.GC_FGD)) | (mask==int(cv2.GC_PR_FGD))] = 255
+            cv2.imshow('Output Mask', mask)
