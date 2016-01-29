@@ -19,6 +19,8 @@ from ivf.cmds.stroke_tool import StrokeToolCommand
 from ivf.cmds.scene import LoadSceneCommand, SaveSceneCommand
 from ivf.cmds.resize import ResizeImageCommand
 from ivf.cmds.graph_cut import GraphCutCommand
+from ivf.cmds.overlay.scene_info import SceneInfoOverlayCommand
+from ivf.cmds.overlay.layer import LayerOverlayCommand
 
 
 ## Main Window
@@ -74,6 +76,10 @@ class MainWindow(QMainWindow):
         tool_menu = menu_bar.addMenu("&Tool")
         self._addCommand(GraphCutCommand(self._scene, self._image_view, parent=tool_menu), tool_menu)
         self._addCommand(StrokeToolCommand(self._scene, self._image_view, parent=tool_menu), tool_menu)
+
+        overlay_menu = menu_bar.addMenu("&Overlay")
+        self._addCommand(SceneInfoOverlayCommand(self._scene, self._image_view, parent=overlay_menu), overlay_menu)
+        self._addCommand(LayerOverlayCommand(self._scene, self._image_view, parent=overlay_menu), overlay_menu)
 
     def _addCommand(self, cmd, parent_menu):
         parent_menu.addAction(cmd.action())

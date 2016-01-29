@@ -12,6 +12,7 @@ from PyQt4.QtCore import *
 from ivf.io_util.image import loadRGBA
 from ivf.scene.data import Data
 from ivf.scene.stroke import StrokeSets
+from ivf.scene.layer import LayerSet
 
 
 ## Scene
@@ -25,7 +26,7 @@ class Scene(QObject, Data):
 
         self._image = None
         self._image_file = ""
-        self._layers = []
+        self._layer_set = LayerSet()
         self._stroke_sets = StrokeSets()
         self._selection = None
 
@@ -44,11 +45,8 @@ class Scene(QObject, Data):
     def strokeSets(self):
         return self._stroke_sets
 
-    def setLayers(self, layers):
-        self._layers = layers
-
-    def layers(self):
-        return self._layers
+    def layerSet(self):
+        return self._layer_set
 
     def setSelection(self, selection):
         self._selection = selection

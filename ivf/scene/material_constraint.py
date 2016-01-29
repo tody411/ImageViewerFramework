@@ -13,21 +13,21 @@ from ivf.scene.data import Data
 
 
 class MaterialConstraint(Data):
+    diffuse_type = 0
+    specular_type = 0
     ## Constructor
-    def __init__(self, point):
+    def __init__(self, point=(0, 0), shading_type=0):
         super(MaterialConstraint, self).__init__()
-        self._point = (0, 0)
-
+        self._point = point
 
     ## dictionary data for writeJson method.
     def _dataDict(self):
-        data = {"points": np.array(self._points).tolist(), "brush_sizes": self._brush_sizes}
+        data = {"point": np.array(self._point).tolist()}
         return data
 
     ## set dictionary data for loadJson method.
     def _setDataDict(self, data):
-        self._points = data["points"]
-        self._brush_sizes = data["brush_sizes"]
+        self._point = data["point"]
 
 
 class MaterialConstraintSet(Data):

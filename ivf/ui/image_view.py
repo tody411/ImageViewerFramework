@@ -71,6 +71,8 @@ class ImageView(QWidget):
         self._cameraTool.outTransform.connect(self.setTransform)
 
         self._overlay_func = None
+        self._scene_overlays = []
+        self._view_overlays = []
 
         self.setWindowTitle("Image View")
 
@@ -85,6 +87,12 @@ class ImageView(QWidget):
 
     def setOverlayFunc(self, overlay_func):
         self._overlay_func = overlay_func
+
+    def addSceneOverlay(self, overlay):
+        self._scene_overlays.append(overlay)
+
+    def addViewOverlay(self, overlay):
+        self._view_overlays.append(overlay)
 
     def transform(self):
         if self._q_image is None:
@@ -129,6 +137,14 @@ class ImageView(QWidget):
 
         if self._overlay_func:
             self._overlay_func(painter)
+
+        for overlay in self._scene_overlays:
+            overlay(painter)
+
+        painter.setWorldTransform(QTransform())
+        for overlay in self._view_overlays:
+            overlay(painter)
+
 
     def setTool(self, tool):
         self._tool = tool
