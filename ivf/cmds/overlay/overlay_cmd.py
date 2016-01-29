@@ -19,6 +19,8 @@ class OverlayCommand(QObject):
         self._view = view
         self._view.addSceneOverlay(self._sceneOverlay)
         self._view.addViewOverlay(self._viewOverlay)
+        self._view.addImageOverlay(self._imageOverlay)
+        self._overlay_image = None
         self._show_sceneOverlay = False
         self._action = None
         self._parent = parent
@@ -32,7 +34,7 @@ class OverlayCommand(QObject):
 
         def toggleFunc(checked):
             self._show_sceneOverlay = checked
-            self._imageOverlay()
+            self._overlay_image = self._imageOverlayImp()
             self._view.update()
 
         self._action = QAction(self._name, self._parent)
@@ -50,9 +52,8 @@ class OverlayCommand(QObject):
 
     def _imageOverlay(self):
         if self._show_sceneOverlay:
-            image = self._scene.image()
-            image = self._imageOverlayImp(image)
-            self._view.render(image)
+            return self._overlay_image
+        return None
 
     def _sceneOverlayImp(self, painter):
         pass
@@ -60,5 +61,5 @@ class OverlayCommand(QObject):
     def _viewOverlayImp(self, painter):
         pass
 
-    def _imageOverlayImp(self, image):
-        return image
+    def _imageOverlayImp(self):
+        return None

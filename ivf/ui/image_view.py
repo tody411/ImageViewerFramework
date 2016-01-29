@@ -11,48 +11,9 @@ from PyQt4.QtCore import *
 
 import numpy as np
 
-from ivf.cv.image import gray2rgb, to8U
 from ivf.ui.tool.camera_tool import CameraTool2D
 from ivf.ui.tool.stroke_tool import StrokeTool
-
-
-def ndarrayToQImage(img):
-    C_8U = to8U(img)
-
-    if len(C_8U.shape) == 2:
-        C_8U = gray2rgb(C_8U)
-
-    if C_8U.shape[2] == 2:
-        C_8U = rg_to_rgb(C_8U)
-
-    if C_8U.shape[2] == 3:
-        return rgb_to_Qrgb(C_8U)
-
-    if C_8U.shape[2] == 4:
-        return rgba_to_Qargb(C_8U)
-
-    return QImage()
-
-
-def ndarrayToQPixmap(img):
-    qimg = ndarrayToQImage(img)
-    return  QPixmap.fromImage(qimg)
-
-
-def rg_to_rgb(C_8U):
-    h,w,cs = C_8U.shape
-    rgb_8U = np.zeros((h,w,3))
-
-    for ci in range(3):
-        rgb_8U[:,:,ci] = C_8U[:,:,ci]
-    return rgb_8U
-
-
-def rgb_to_Qrgb(C_8U):
-    return QImage(C_8U.data,C_8U.shape[1], C_8U.shape[0], QImage.Format_RGB888)
-
-def rgba_to_Qargb(C_8U):
-    return QImage(C_8U.data,C_8U.shape[1], C_8U.shape[0], QImage.Format_ARGB32).rgbSwapped()
+from ivf.ui.qimage_util import ndarrayToQImage
 
 
 ## Image View
@@ -73,6 +34,7 @@ class ImageView(QWidget):
         self._overlay_func = None
         self._scene_overlays = []
         self._view_overlays = []
+        self._image_overlyas = []
 
         self.setWindowTitle("Image View")
 
@@ -93,6 +55,9 @@ class ImageView(QWidget):
 
     def addViewOverlay(self, overlay):
         self._view_overlays.append(overlay)
+
+    def addImageOverlay(self, overlay):
+        self._image_overlyas.append(overlay)
 
     def transform(self):
         if self._q_image is None:
@@ -134,6 +99,11 @@ class ImageView(QWidget):
             return
 
         painter.drawImage(0, 0, self._q_image)
+
+        for overlay in self._image_overlyas:
+            q_image = overlay()
+            if q_image is not None:
+                painter.drawImage(0, 0, q_image)
 
         if self._overlay_func:
             self._overlay_func(painter)
