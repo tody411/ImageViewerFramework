@@ -64,6 +64,9 @@ def alpha(img):
 
 ## Set alpha for the image.
 def setAlpha(img, a):
+    if a is None:
+        return img
+
     h = img.shape[0]
     w = img.shape[1]
 

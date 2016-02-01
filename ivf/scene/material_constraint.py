@@ -14,7 +14,7 @@ from ivf.scene.data import Data
 
 class MaterialConstraint(Data):
     diffuse_type = 0
-    specular_type = 0
+    specular_type = 1
     ## Constructor
     def __init__(self, point=(0, 0), shading_type=0):
         super(MaterialConstraint, self).__init__()

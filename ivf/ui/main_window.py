@@ -21,6 +21,11 @@ from ivf.cmds.resize import ResizeImageCommand
 from ivf.cmds.graph_cut import GraphCutCommand
 from ivf.cmds.overlay.scene_info import SceneInfoOverlayCommand
 from ivf.cmds.overlay.layer import LayerOverlayCommand
+from ivf.cmds.slic import SlicCommand
+from ivf.cmds.display.display_cmd import DisplayCommand
+from ivf.cmds.sfs.ibme import IBMECommand
+from ivf.cmds.sfs.lumo import LumoCommand
+from ivf.cmds.sfs.depth_from_normal import DepthFromNormalCommand
 
 
 ## Main Window
@@ -69,9 +74,14 @@ class MainWindow(QMainWindow):
         self._addCommand(SaveImageCommand(self._scene, parent=file_menu), file_menu)
         self._addCommand(QuitCommand(self._scene, parent=file_menu), file_menu)
 
-        menu_bar = self.menuBar()
         operation_menu = menu_bar.addMenu("&Image Operation")
         self._addCommand(ResizeImageCommand(self._scene, (0.5, 0.5), "&Down scale", parent=operation_menu), operation_menu)
+        self._addCommand(SlicCommand(self._scene, parent=operation_menu), operation_menu)
+
+        sfs_menu = menu_bar.addMenu("&Shape From Shading")
+        self._addCommand(IBMECommand(self._scene, parent=sfs_menu), sfs_menu)
+        self._addCommand(LumoCommand(self._scene, parent=sfs_menu), sfs_menu)
+        self._addCommand(DepthFromNormalCommand(self._scene, parent=sfs_menu), sfs_menu)
 
         tool_menu = menu_bar.addMenu("&Tool")
         self._addCommand(GraphCutCommand(self._scene, self._image_view, parent=tool_menu), tool_menu)
@@ -80,6 +90,11 @@ class MainWindow(QMainWindow):
         overlay_menu = menu_bar.addMenu("&Overlay")
         self._addCommand(SceneInfoOverlayCommand(self._scene, self._image_view, parent=overlay_menu), overlay_menu)
         self._addCommand(LayerOverlayCommand(self._scene, self._image_view, parent=overlay_menu), overlay_menu)
+
+        display_menu = menu_bar.addMenu("&Display")
+        display_command_action_group = DisplayCommand(self._scene, self._image_view, parent=display_menu).actionGroup()
+        for action in display_command_action_group.actions():
+            display_menu.addAction(action)
 
     def _addCommand(self, cmd, parent_menu):
         parent_menu.addAction(cmd.action())
