@@ -21,4 +21,5 @@ class IBMECommand(BaseCommand):
         I_32F = to32F(rgb2gray(rgb(image)))
         N_32F, D_32F = estimateNormal(I_32F)
         self._scene.setNormal(N_32F)
+        self._scene.setDepth(D_32F)
         self._scene.setDisplayMode(Scene.DisplayNormal)

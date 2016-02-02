@@ -27,6 +27,8 @@ from ivf.cmds.sfs.ibme import IBMECommand
 from ivf.cmds.sfs.lumo import LumoCommand
 from ivf.cmds.sfs.depth_from_normal import DepthFromNormalCommand
 from ivf.cmds.window.depth_view import DepthViewCommand
+from ivf.ui.glview import GLView
+from ivf.cmds.load_normal import LoadNormalCommand
 
 
 ## Main Window
@@ -38,7 +40,10 @@ class MainWindow(QMainWindow):
         self.setAcceptDrops(True)
         self._scene = Scene()
         self._image_view = ImageView()
-        self.setCentralWidget(self._image_view)
+        self._depth_view = GLView()
+
+        self._createCentralWidget([('Image View', self._image_view),
+                                   ('Depth View', self._depth_view)])
 
         self._status_bar = QStatusBar(self)
         self.setStatusBar(self._status_bar)
@@ -47,6 +52,7 @@ class MainWindow(QMainWindow):
         self._createMenus()
 
         self._scene.updatedImage.connect(self._image_view.render)
+        self._scene.updatedDepth.connect(self._depth_view.setRGBAD)
         self._scene.updatedMessage.connect(self._status_bar.showMessage)
         self.setFocusPolicy(Qt.StrongFocus)
         self.setWindowTitle("Image Viewer")
@@ -73,6 +79,7 @@ class MainWindow(QMainWindow):
         self._addCommand(SaveSceneCommand(self._scene, parent=file_menu), file_menu)
         self._addCommand(LoadImageCommand(self._scene, parent=file_menu), file_menu)
         self._addCommand(SaveImageCommand(self._scene, parent=file_menu), file_menu)
+        self._addCommand(LoadNormalCommand(self._scene, parent=file_menu), file_menu)
         self._addCommand(QuitCommand(self._scene, parent=file_menu), file_menu)
 
         operation_menu = menu_bar.addMenu("&Image Operation")
@@ -102,6 +109,15 @@ class MainWindow(QMainWindow):
 
     def _addCommand(self, cmd, parent_menu):
         parent_menu.addAction(cmd.action())
+
+    def _createCentralWidget(self, widgets):
+        tab_widget = QTabWidget()
+
+        for name, widget in widgets:
+            tab_widget.addTab(widget, name)
+
+        tab_widget.setCurrentIndex(0)
+        self.setCentralWidget(tab_widget)
 
 
 def runGUI():

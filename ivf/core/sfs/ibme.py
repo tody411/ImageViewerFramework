@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from ivf.cv.normal import normalizeImage
 
 
-def computeGradientNormals(D_32F, sigma=3.0):
+def computeGradientNormals(D_32F, sigma=1.0):
     h, w = D_32F.shape
 
     gx = cv2.Sobel(D_32F, cv2.CV_64F, 1, 0, ksize=1)
@@ -30,7 +30,7 @@ def computeGradientNormals(D_32F, sigma=3.0):
 
     B_32F = np.zeros((h, w, 3), dtype=np.float32)
     B_32F[:, :, 1] = 1.0
-    B_32F[:, :, 2] = -  g_scale * gy
+    B_32F[:, :, 2] = -g_scale * gy
 
     T_flat = T_32F.reshape(-1, 3)
     B_flat = B_32F.reshape(-1, 3)
@@ -47,6 +47,9 @@ def depthRecovery(I_32F, sigma_range=0.1, sigma_space=10,
     BL = cv2.bilateralFilter(I_32F, -1, sigma_range, sigma_space)
     DL = I_32F - BL
     D_32F = w_base * BL + w_detail * DL
+    h, w = I_32F.shape[:2]
+    d_scale = 0.5 * 0.5 * (h+w)
+    D_32F = d_scale * D_32F
     return D_32F
 
 

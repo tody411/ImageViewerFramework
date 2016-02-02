@@ -6,6 +6,8 @@
 #  @author      tody
 #  @date        2016/01/25
 
+import numpy as np
+
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
@@ -20,6 +22,7 @@ from ivf.cv.image import alpha, gray2rgb, setAlpha, to8U
 ## Scene
 class Scene(QObject, Data):
     updatedImage = pyqtSignal(object)
+    updatedDepth = pyqtSignal(object, object)
     updatedMessage = pyqtSignal(str)
 
     DisplayImage = 0
@@ -89,12 +92,16 @@ class Scene(QObject, Data):
 
     def setDepth(self, depth):
         self._depth = depth
+        self.updatedDepth.emit(self._image, self._depth)
 
     def depth(self):
         return self._depth
 
     def depthImage(self):
-        D_8U = to8U(self._depth)
+        D_min = np.min(self._depth)
+        D_max = np.max(self._depth)
+        D_32F = (self._depth - D_min) / (D_max - D_min)
+        D_8U = to8U(D_32F)
         D_8U = gray2rgb(D_8U)
         A_8U = alpha(self._image)
         D_8U = setAlpha(D_8U, A_8U)

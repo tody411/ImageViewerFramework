@@ -64,7 +64,7 @@ def initialDepthConstraint(N_32F, A_8U, w0=0.1):
 
 
 @timing_func
-def laplacianConstraints(image_size, w_lap=1.0, num_elements=1, w_L=1.0):
+def laplacianConstraints(image_size, num_elements=1, w_L=1.0):
     h, w = image_size
     num_verts = h * w * num_elements
 
@@ -74,13 +74,13 @@ def laplacianConstraints(image_size, w_lap=1.0, num_elements=1, w_L=1.0):
     return L_csr
 
 
-def normalIntegralConstraints(A_8U, N_32F, w_cons=0.5):
+def normalIntegralConstraints(A_8U, N_32F, w_cons=20.0):
 
-    epsilon = 0.01
+    epsilon = 0.1
     N_flat = N_32F.reshape(-1, 3)
     Nx = N_flat[:, 0]
     Ny = N_flat[:, 1]
-    Nz = N_flat[:, 2] + epsilon
+    Nz = np.clip(N_flat[:, 2], epsilon, 1.0)
 
     h, w = A_8U.shape
     num_verts = h * w
@@ -89,10 +89,7 @@ def normalIntegralConstraints(A_8U, N_32F, w_cons=0.5):
                        [1, w, 0],
                        shape=(num_verts, num_verts))
 
-    dx, dy = dxy((h, w))
-    print dx, dy
-
-    b = (dx * Nx - dy * Ny) / Nz
+    b = (Nx - Ny) / Nz
     b = w_cons * b
     return A, b
 
@@ -104,74 +101,54 @@ def normalHeightConstraints(A_8U, N_32F, w_cons=0.05):
     Nx_flat = Nx.reshape(-1, 3)
     Ny_flat = Ny.reshape(-1, 3)
 
-    epsilon = 0.001
-    Hx = - Nx_flat[:, 2]# / (epsilon + np.abs(Nx_flat[:, 0]))
-    Hy = - Ny_flat[:, 2]# / (epsilon + np.abs(Ny_flat[:, 1]))
-    Nxy = epsilon + np.abs(Nx_flat[:, 0]) + np.abs(Ny_flat[:, 1])
+    epsilon = 0.01
+    Hx = - Nx_flat[:, 2] / (epsilon + np.abs(Nx_flat[:, 0]))
+    Hy = - Ny_flat[:, 2] / (epsilon + np.abs(Ny_flat[:, 1]))
+    #Nxy = epsilon + np.abs(Nx_flat[:, 0]) + np.abs(Ny_flat[:, 1])
     h, w = A_8U.shape
     num_verts = h * w
 
     A = w_cons * scipy.sparse.diags([-1, -1, 2],
                        [1, w, 0],
                        shape=(num_verts, num_verts))
-    dx, dy = dxy((h, w))
-    b = (dx * Hx + dy * Hy) / Nxy
+
+    b = (-Hx + Hy)
     b = w_cons * b
     return A, b
 
 
 def normalLaplacianConstraints(A_8U, N_32F, w_cons=1.0):
-    epsilon = 0.01
+    epsilon = 0.0001
     weights = np.array([[0, -1, 0],[-1, 4, -1],[0, -1, 0]]) / 4.0
     N_L = np.zeros(N_32F.shape)
     N_L[1:-1, 1:-1, :] = N_32F[1:-1, 1:-1, :] - (N_32F[0:-2, 1:-1, :]
                                                  + N_32F[2:, 1:-1, :]
                                                  + N_32F[1:-1, 0:-2, :]
                                                  + + N_32F[1:-1, 2:, :]) / 4.0
-    # N_L = ndimage.convolve(N_32F, weights)
-    # N_L = - ndimage.laplace(N_32F) / 4.0
 
-    #print np.max(N_L)
-    #N_L = - to32F(cv2.Laplacian(to8U(N_32F), cv2.CV_64F)) / 4.0
-
-    Nx = cv2.Sobel(N_32F, cv2.CV_64F, 1, 0, ksize=1)
-    Ny = cv2.Sobel(N_32F, cv2.CV_64F, 0, 1, ksize=1)
-
-    Nx_flat = Nx.reshape(-1, 3)
-    Ny_flat = Ny.reshape(-1, 3)
-
+    N_flat = N_32F.reshape(-1, 3)
+    Z_flat = 1.0 - N_flat[:, 2]
     N_L_flat = N_L.reshape(-1, 3)
-
-    Nxy = np.abs(Nx_flat[:, 0]) + np.abs(Ny_flat[:, 1])
-    Nxy_min = np.min(Nxy)
-    Nxy_max = np.max(Nxy)
-
-    print Nxy_max
-
-    Nxy = epsilon + Nxy
-    Nxy_avg = np.average(Nxy)
-    N_L_avg = np.average(N_L)
-    print Nxy_avg, N_L_avg
 
     h, w = A_8U.shape
     num_verts = h * w
     A = w_cons * scipy.sparse.diags([-1, -1, -1, -1, 4],
                        [1, w, -1, -w, 0],
                        shape=(num_verts, num_verts))
-    dx, dy = dxy((h, w))
-    b = 4.0 * dx * N_L_flat[:, 2] / Nxy
+
+    b = 4.0 *  Z_flat
     b = w_cons * b
     return A, b
 
 
-def backgroundConstraint(A_8U, w_bg=100.0):
+def backgroundConstraint(A_8U, w_bg=0.001):
     h, w = A_8U.shape
     num_verts = h * w
 
-    foreground = A_8U.flatten() == np.max(A_8U)
+    foreground = A_8U.flatten() > 0.5 * np.max(A_8U)
 
     diags = np.ones(num_verts)
-    diags[foreground] = 0.0
+    #diags[foreground] = 0.0
 
     A = w_bg * scipy.sparse.diags(diags, 0)
     return A
@@ -208,7 +185,7 @@ def depthToNormal(D_32F):
 
 
 def depthFromNormal(N_32F, A_8U):
-    #N_32F = preProcess(N_32F, A_8U)
+    N_32F = preProcess(N_32F, A_8U)
 
     h, w = A_8U.shape
     #A0, b0 = initialDepthConstraint(N_32F, A_8U)
@@ -216,7 +193,7 @@ def depthFromNormal(N_32F, A_8U):
     A_i, b_i = normalIntegralConstraints(A_8U, N_32F, w_cons=1.0)
     A_bg = backgroundConstraint(A_8U)
 
-    A = A_L + A_i # + A_bg
+    A = A_L + A_i + A_bg
     b = b_i
 
     D_flat = solveMG(A, b)
@@ -232,12 +209,13 @@ def preProcess(N0_32F, A_8U):
     background = A_8U == 0
 
     N_32F = np.array(N0_32F)
-    sigma = 20.0
-    for i in xrange(10):
+    N_32F[background, :] = np.array([0.0, 0.0, 1.0])
+    sigma = 5.0
+    for i in xrange(5):
         N_32F = cv2.GaussianBlur(N_32F, (0, 0), sigma)
         N_32F[foreground, :] = N0_32F[foreground, :]
-        N_32F[background, 2] = 0.0
-    N_32F[background, 2] = 0.0
+        #N_32F[background, :] = np.array([0.0, 0.0, 1.0])
+    #N_32F[background, :] = np.array([0.0, 0.0, 1.0])
     N_32F = normalizeImage(N_32F)
     return N_32F
 

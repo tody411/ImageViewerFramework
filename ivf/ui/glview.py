@@ -110,6 +110,7 @@ class GLView(QtOpenGL.QGLWidget):
         model = ImagePlane(RGBA_8U)
         model.setDepth(D_32F)
         self.setModel(model)
+        self.update()
 
     def _renderBackGround(self):
         self.width()

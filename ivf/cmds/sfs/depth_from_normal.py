@@ -33,16 +33,19 @@ class DepthFromNormalCommand(BaseCommand):
         if N_32F is None:
             return
 
-        N_32F = cv2.resize(N_32F, None, fx=0.25, fy=0.25)
-        h, w = N_32F.shape[:2]
-        A_8U = cv2.resize(A_8U, (w, h))
+        h_high, w_high = image.shape[:2]
+        w_low = min(256, w_high)
+        h_low = w_low * h_high / w_high
+
+        N_32F = cv2.resize(N_32F, (w_low, h_low))
+        A_8U = cv2.resize(A_8U, (w_low, h_low))
 
         D_32F = depthFromNormal(N_32F, A_8U)
 
-        h, w = image.shape[:2]
-        D_32F = cv2.resize(D_32F, (w, h))
+        d_scale = w_high / float(w_low)
+        D_32F = d_scale * D_32F
 
-        print D_32F.dtype
+        D_32F = cv2.resize(D_32F, (w_high, h_high))
 
         self._scene.setDepth(D_32F)
         self._scene.setDisplayMode(Scene.DisplayDepth)
