@@ -208,21 +208,20 @@ def depthToNormal(D_32F):
 
 
 def depthFromNormal(N_32F, A_8U):
-    N_32F = preProcess(N_32F, A_8U)
+    #N_32F = preProcess(N_32F, A_8U)
 
     h, w = A_8U.shape
-    A0, b0 = initialDepthConstraint(N_32F, A_8U)
+    #A0, b0 = initialDepthConstraint(N_32F, A_8U)
     A_L = laplacianConstraints((h, w), num_elements=1)
     A_i, b_i = normalIntegralConstraints(A_8U, N_32F, w_cons=1.0)
     A_bg = backgroundConstraint(A_8U)
 
-    A = A0 + A_L + A_i + A_bg
-    b = b0 + b_i
+    A = A_L + A_i # + A_bg
+    b = b_i
 
     D_flat = solveMG(A, b)
     D_32F = D_flat.reshape(h, w)
-    D_32F = postProcess(D_32F, A_8U)
-
+    #D_32F = postProcess(D_32F, A_8U)
     # N_32F = depthToNormal(D_32F)
 
     return D_32F

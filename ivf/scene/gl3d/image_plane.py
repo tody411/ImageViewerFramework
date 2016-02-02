@@ -20,12 +20,16 @@ class ImagePlane:
         self._geometry = Mesh()
         self._initGeometry()
 
-    @timing_func
     def gl(self):
         self._geometry.gl()
 
     def boundingBox(self):
         return self._geometry.boundingBox()
+
+    def setDepth(self, D_32F):
+        D_flat = D_32F.ravel()
+        self._points[:, 2] = D_flat
+        self._geometry.setPositions(self._points)
 
     @timing_func
     def _initPoints(self, h, w):
@@ -58,15 +62,12 @@ class ImagePlane:
     def _initGeometry(self):
         h, w = self._image.shape[:2]
 
-        points = self._initPoints(h, w)
+        self._points = self._initPoints(h, w)
         colors = self._image.reshape(-1, self._image.shape[2])
-        normals = 2.0 * colors - 1.0
-
-        points[:, 2] = 0.5 * w * normals[:, 2]
 
         index_array = self._initIndexArray(h, w)
 
-        self._geometry.setPositions(points)
+        self._geometry.setPositions(self._points)
         self._geometry.setVertexColors(colors)
         self._geometry.setInexArray(index_array)
 
@@ -79,7 +80,6 @@ class TexturePlane:
         self._initGeometry()
         self._texture_id = None
 
-    @timing_func
     def gl(self):
         glEnable( GL_TEXTURE_2D )
 

@@ -12,7 +12,7 @@ import numpy as np
 # OpenGL modules
 from OpenGL.GL import *
 from OpenGL.GLUT import *
-from npr_sfs.util.timer import timing_func
+from ivf.util.timer import timing_func
 
 
 def boundingBox(positions):
@@ -64,7 +64,6 @@ class Geometry:
     def empty(self):
         return self._vertexArray is None or self._indexArray is None
 
-    @timing_func
     def gl(self):
         if self.empty():
             return

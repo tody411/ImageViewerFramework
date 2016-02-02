@@ -26,6 +26,7 @@ from ivf.cmds.display.display_cmd import DisplayCommand
 from ivf.cmds.sfs.ibme import IBMECommand
 from ivf.cmds.sfs.lumo import LumoCommand
 from ivf.cmds.sfs.depth_from_normal import DepthFromNormalCommand
+from ivf.cmds.window.depth_view import DepthViewCommand
 
 
 ## Main Window
@@ -95,6 +96,9 @@ class MainWindow(QMainWindow):
         display_command_action_group = DisplayCommand(self._scene, self._image_view, parent=display_menu).actionGroup()
         for action in display_command_action_group.actions():
             display_menu.addAction(action)
+
+        window_menu = menu_bar.addMenu("&Window")
+        self._addCommand(DepthViewCommand(self._scene, parent=window_menu), window_menu)
 
     def _addCommand(self, cmd, parent_menu):
         parent_menu.addAction(cmd.action())

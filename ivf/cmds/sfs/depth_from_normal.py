@@ -6,7 +6,7 @@
 #  @author      tody
 #  @date        2016/02/01
 
-
+import numpy as np
 import cv2
 
 from ivf.cmds.base_cmds import BaseCommand
@@ -46,3 +46,7 @@ class DepthFromNormalCommand(BaseCommand):
 
         self._scene.setDepth(D_32F)
         self._scene.setDisplayMode(Scene.DisplayDepth)
+
+        self._output_info = "(%s, %s)" %(np.min(D_32F), np.max(D_32F))
+
+        print self._output_info

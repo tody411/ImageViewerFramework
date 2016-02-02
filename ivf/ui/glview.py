@@ -19,6 +19,7 @@ from OpenGL.GL import *
 
 from ivf.ui.tool.camera_tool import CameraTool3D
 from ivf.scene.gl3d.camera import PerspectiveCamera, lookAtBoundingBox
+from ivf.scene.gl3d.image_plane import TexturePlane, ImagePlane
 
 
 class GLView(QtOpenGL.QGLWidget):
@@ -42,8 +43,10 @@ class GLView(QtOpenGL.QGLWidget):
     def paintGL(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
+        self._renderBackGround()
+
         glLoadIdentity()
-        gluLookAt(0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0)
+        #gluLookAt(0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0)
 
         self._camera_tool.gl()
 
@@ -54,8 +57,8 @@ class GLView(QtOpenGL.QGLWidget):
         glEnable(GL_DEPTH_TEST)
         glDisable(GL_CULL_FACE)
 
-        for model in self._models:
-            model.gl()
+        if self._model is not None:
+            self._model.gl()
 
     def resizeGL(self, width, height):
         if height == 0:
@@ -63,10 +66,11 @@ class GLView(QtOpenGL.QGLWidget):
 
         glViewport(0, 0, width, height)
         aspect = width / float(height)
-
-        PerspectiveCamera(30.0, aspect, 1.0, 1000.0).gl()
-
-        glMatrixMode(GL_MODELVIEW)
+        glMatrixMode ( GL_PROJECTION )
+        glLoadIdentity()
+        glOrtho ( -aspect , aspect , -1 , 1 , -10.0 , 10.0 )
+        glMatrixMode ( GL_MODELVIEW )
+        #PerspectiveCamera(30.0, aspect, 1.0, 1000.0).gl()
 
     def mousePressEvent(self, event):
         self._camera_tool.mousePressEvent(event)
@@ -101,6 +105,35 @@ class GLView(QtOpenGL.QGLWidget):
         self._model = model
         bb = model.boundingBox()
         self._focus_gl = lookAtBoundingBox(bb)
+
+    def setRGBAD(self, RGBA_8U, D_32F):
+        model = ImagePlane(RGBA_8U)
+        model.setDepth(D_32F)
+        self.setModel(model)
+
+    def _renderBackGround(self):
+        self.width()
+        aspect = self.width() / float(self.height())
+        glMatrixMode(GL_MODELVIEW)
+        glLoadIdentity()
+
+        glEnable(GL_DEPTH_TEST)
+        glDisable(GL_LIGHTING)
+
+        glBegin(GL_QUADS)
+        glColor3f(0.1, 0.1, 0.1)
+        glVertex3f(-aspect, -1.0, -9.0)
+
+        glColor3f(0.1, 0.1, 0.1)
+        glVertex3f(aspect, -1.0, -9.0)
+
+        glColor3f(0.5, 0.6, 0.7)
+        glVertex3f(aspect, 1.0, -9.0)
+
+        glColor3f(0.5, 0.6, 0.7)
+        glVertex3f(-aspect, 1.0, -9.0)
+        glEnd()
+        glColor3f(1.0, 1.0, 1.0)
 
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
