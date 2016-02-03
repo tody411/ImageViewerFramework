@@ -19,7 +19,7 @@ class BilateralSmoothingCommand(BaseCommand):
     def _runImp(self):
         image = self._scene.image()
         h, w = image.shape[:2]
-        w_low = 128
+        w_low = 512
         h_low = w_low * h / w
         image_low = cv2.resize(image, (w_low, h_low))
 
