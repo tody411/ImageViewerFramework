@@ -25,17 +25,24 @@ class Mesh:
     def setPositions(self, positions):
         self._geometry.setPositions(positions)
 
+    def positions(self):
+        return self._geometry.positions()
+
     def boundingBox(self):
         return self._geometry.boundingBox()
 
     def setNormals(self, normals):
         self._geometry.setNormals(normals)
 
+    def normals(self):
+        return self._geometry.normals()
+
     def setInexArray(self, indexArray):
         if indexArray is None:
             return
 
         indexArray = np.array(indexArray)
+        self._indexArray = indexArray
 
         if len(indexArray.shape) == 1:
             self._geometry.setInexArray(indexArray.ravel())
@@ -49,8 +56,14 @@ class Mesh:
 
         self._geometry.setInexArray(indexArray.ravel())
 
+    def indexArray(self):
+        return self._indexArray
+
     def setVertexColors(self, vertexColors):
         self._geometry.setVertexColors(vertexColors)
+
+    def vertexColors(self):
+        return self._geometry.vertexColors()
 
     def setTexCoords(self, texCoords):
         self._geometry.setTexCoords(texCoords)

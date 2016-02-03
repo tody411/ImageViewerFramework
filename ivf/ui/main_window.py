@@ -11,7 +11,6 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
 from ivf.ui.image_view import ImageView
-from ivf.io_util.image import loadRGBA
 from ivf.scene.scene import Scene
 from ivf.cmds.image import LoadImageCommand, SaveImageCommand
 from ivf.cmds.quit import QuitCommand
@@ -29,6 +28,8 @@ from ivf.cmds.sfs.depth_from_normal import DepthFromNormalCommand
 from ivf.cmds.window.depth_view import DepthViewCommand
 from ivf.ui.glview import GLView
 from ivf.cmds.load_normal import LoadNormalCommand
+from ivf.cmds.save_depth import SaveDepthCommand
+from ivf.cmds.sparse_smoothing.bilateral_smoothing import BilateralSmoothingCommand
 
 
 ## Main Window
@@ -80,11 +81,13 @@ class MainWindow(QMainWindow):
         self._addCommand(LoadImageCommand(self._scene, parent=file_menu), file_menu)
         self._addCommand(SaveImageCommand(self._scene, parent=file_menu), file_menu)
         self._addCommand(LoadNormalCommand(self._scene, parent=file_menu), file_menu)
+        self._addCommand(SaveDepthCommand(self._scene, parent=file_menu), file_menu)
         self._addCommand(QuitCommand(self._scene, parent=file_menu), file_menu)
 
         operation_menu = menu_bar.addMenu("&Image Operation")
         self._addCommand(ResizeImageCommand(self._scene, (0.5, 0.5), "&Down scale", parent=operation_menu), operation_menu)
         self._addCommand(SlicCommand(self._scene, parent=operation_menu), operation_menu)
+        self._addCommand(BilateralSmoothingCommand(self._scene, parent=operation_menu), operation_menu)
 
         sfs_menu = menu_bar.addMenu("&Shape From Shading")
         self._addCommand(IBMECommand(self._scene, parent=sfs_menu), sfs_menu)

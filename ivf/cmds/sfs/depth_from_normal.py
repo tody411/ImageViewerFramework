@@ -25,9 +25,6 @@ class DepthFromNormalCommand(BaseCommand):
         image = self._scene.image()
         A_8U = alpha(image)
 
-        if A_8U is None:
-            return
-
         N_32F = self._scene.normal()
 
         if N_32F is None:
@@ -38,7 +35,8 @@ class DepthFromNormalCommand(BaseCommand):
         h_low = w_low * h_high / w_high
 
         N_32F = cv2.resize(N_32F, (w_low, h_low))
-        A_8U = cv2.resize(A_8U, (w_low, h_low))
+        if A_8U is not None:
+            A_8U = cv2.resize(A_8U, (w_low, h_low))
 
         D_32F = depthFromNormal(N_32F, A_8U)
 

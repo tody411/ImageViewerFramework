@@ -20,6 +20,9 @@ class ImagePlane:
         self._geometry = Mesh()
         self._initGeometry()
 
+    def mesh(self):
+        return self._geometry
+
     def gl(self):
         self._geometry.gl()
 

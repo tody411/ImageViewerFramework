@@ -141,7 +141,7 @@ def normalLaplacianConstraints(A_8U, N_32F, w_cons=1.0):
     return A, b
 
 
-def backgroundConstraint(A_8U, w_bg=0.001):
+def backgroundConstraint(A_8U, w_bg=0.005):
     h, w = A_8U.shape
     num_verts = h * w
 
@@ -185,15 +185,16 @@ def depthToNormal(D_32F):
 
 
 def depthFromNormal(N_32F, A_8U):
-    N_32F = preProcess(N_32F, A_8U)
+    if A_8U is not None:
+        N_32F = preProcess(N_32F, A_8U)
 
-    h, w = A_8U.shape
+    h, w = N_32F.shape[:2]
     #A0, b0 = initialDepthConstraint(N_32F, A_8U)
     A_L = laplacianConstraints((h, w), num_elements=1)
     A_i, b_i = normalIntegralConstraints(A_8U, N_32F, w_cons=1.0)
     A_bg = backgroundConstraint(A_8U)
 
-    A = A_L + A_i + A_bg
+    A = A_i + A_bg
     b = b_i
 
     D_flat = solveMG(A, b)

@@ -34,6 +34,9 @@ class Geometry:
     def setPositions(self, positions):
         self._vertexArray = np.float32(positions)
 
+    def positions(self):
+        return self._vertexArray
+
     def boundingBox(self):
         return boundingBox(self._vertexArray)
 
@@ -43,11 +46,20 @@ class Geometry:
     def setNormals(self, normals):
         self._normalArray = normals
 
+    def normals(self):
+        return self._normalArray
+
     def setInexArray(self, indexArray):
         self._indexArray = indexArray
 
+    def indexArray(self):
+        return self._indexArray
+
     def setVertexColors(self, vertexColors):
         self._vertexColors = np.float32(vertexColors)
+
+    def vertexColors(self):
+        return self._vertexColors
 
     def hasVertexColors(self):
         return self._vertexColors is not None

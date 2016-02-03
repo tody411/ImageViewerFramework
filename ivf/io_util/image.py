@@ -31,6 +31,9 @@ def loadRGBA(file_path):
     if bgra is None:
         return None
 
+    if len(bgra.shape) == 2:
+        return gray2rgb(bgra)
+
     if bgra.shape[2] == 3:
         return bgr2rgb(bgra)
     return bgra2rgba(bgra)
