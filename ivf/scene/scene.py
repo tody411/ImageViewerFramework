@@ -72,6 +72,7 @@ class Scene(QObject, Data):
         self.setImage(image)
         self._normal = None
         self._depth = None
+        self.updatedDepth.emit(self._image, self._depth)
 
     def setImage(self, image):
         self._image = image

@@ -108,7 +108,8 @@ class GLView(QtOpenGL.QGLWidget):
 
     def setRGBAD(self, RGBA_8U, D_32F):
         model = ImagePlane(RGBA_8U)
-        model.setDepth(D_32F)
+        if D_32F is not None:
+            model.setDepth(D_32F)
         self.setModel(model)
         self.update()
 
