@@ -118,17 +118,22 @@ def normalHeightConstraints(A_8U, N_32F, w_cons=0.05):
 
 
 def normalLaplacianConstraints(A_8U, N_32F, w_cons=1.0):
-    epsilon = 0.0001
-    weights = np.array([[0, -1, 0],[-1, 4, -1],[0, -1, 0]]) / 4.0
-    N_L = np.zeros(N_32F.shape)
-    N_L[1:-1, 1:-1, :] = N_32F[1:-1, 1:-1, :] - (N_32F[0:-2, 1:-1, :]
-                                                 + N_32F[2:, 1:-1, :]
-                                                 + N_32F[1:-1, 0:-2, :]
-                                                 + + N_32F[1:-1, 2:, :]) / 4.0
+    epsilon = 0.1
 
-    N_flat = N_32F.reshape(-1, 3)
-    Z_flat = 1.0 - N_flat[:, 2]
-    N_L_flat = N_L.reshape(-1, 3)
+    Nx = cv2.Sobel(N_32F, cv2.CV_64F, 1, 0, ksize=1)
+    Ny = cv2.Sobel(N_32F, cv2.CV_64F, 0, 1, ksize=1)
+
+
+#     N_L = np.zeros(N_32F.shape)
+#     N_L[1:-1, 1:-1, :] = N_32F[1:-1, 1:-1, :] - (N_32F[0:-2, 1:-1, :]
+#                                                  + N_32F[2:, 1:-1, :]
+#                                                  + N_32F[1:-1, 0:-2, :]
+#                                                  + + N_32F[1:-1, 2:, :]) / 4.0
+    Nx = Nx.reshape(-1, 3)
+    Ny = Ny.reshape(-1, 3)
+
+    Nxz = np.clip(Nx[:, 2], epsilon, 1.0)
+    Nyz = np.clip(Ny[:, 2], epsilon, 1.0)
 
     h, w = A_8U.shape
     num_verts = h * w
@@ -136,12 +141,12 @@ def normalLaplacianConstraints(A_8U, N_32F, w_cons=1.0):
                        [1, w, -1, -w, 0],
                        shape=(num_verts, num_verts))
 
-    b = 4.0 *  Z_flat
+    b = Nx[:, 0] - Ny[:, 1]
     b = w_cons * b
     return A, b
 
 
-def backgroundConstraint(A_8U, w_bg=0.005):
+def backgroundConstraint(A_8U, w_bg=0.00005):
     h, w = A_8U.shape
     num_verts = h * w
 
@@ -191,7 +196,7 @@ def depthFromNormal(N_32F, A_8U):
     h, w = N_32F.shape[:2]
     #A0, b0 = initialDepthConstraint(N_32F, A_8U)
     A_L = laplacianConstraints((h, w), num_elements=1)
-    A_i, b_i = normalIntegralConstraints(A_8U, N_32F, w_cons=1.0)
+    A_i, b_i = normalLaplacianConstraints(A_8U, N_32F, w_cons=1.0)
     A_bg = backgroundConstraint(A_8U)
 
     A = A_i + A_bg

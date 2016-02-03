@@ -16,19 +16,19 @@ from ivf.cv.image import Lab2rgb, to8U, setAlpha, alpha
 
 
 def bilateralSmoothing(image):
-    sigma_xy = 20.0
+    sigma_xy = 1.0
     xy = positionFeatures(image) / sigma_xy
     Lab = LabFeatures(image)
     foreground = foreGroundFeatures(image)
 
     Labxy = np.concatenate((Lab, xy), axis=1)[foreground, :]
-    sigma_L = 10.0
+    sigma_L = 1.0
     Labxy[:, 0] = Labxy[:, 0] / sigma_L
-    Labxy_sparse = shuffle(Labxy, random_state=0)[:100]
+    Labxy_sparse = shuffle(Labxy, random_state=0)[:1000]
 
     Lab_smooth = np.array(Lab)
 
-    smooth = 100.0
+    smooth = 1000.0
 
     L_rbf = Rbf(Labxy_sparse[:, 0], Labxy_sparse[:, 1], Labxy_sparse[:, 2],
                 Labxy_sparse[:, 3], Labxy_sparse[:, 4], sigma_L * Labxy_sparse[:, 0], function='linear', smooth=smooth)
