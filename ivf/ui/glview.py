@@ -26,10 +26,7 @@ class GLView(QtOpenGL.QGLWidget):
     def __init__(self, parent=None):
         QtOpenGL.QGLWidget.__init__(self, QtOpenGL.QGLFormat(QtOpenGL.QGL.SampleBuffers), parent)
 
-        self._camera_tool = CameraTool3D()
-        self._focus_gl = None
-        self._model = None
-
+        self.setAutoFillBackground(False)
         self.setMinimumSize(300, 300)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.setAcceptDrops(True)
@@ -45,21 +42,6 @@ class GLView(QtOpenGL.QGLWidget):
 
         self._renderBackGround()
 
-        glLoadIdentity()
-        #gluLookAt(0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0)
-
-        self._camera_tool.gl()
-
-        if self._focus_gl is not None:
-            self._focus_gl()
-
-        glEnable(GL_BLEND)
-        glEnable(GL_DEPTH_TEST)
-        glDisable(GL_CULL_FACE)
-
-        if self._model is not None:
-            self._model.gl()
-
     def resizeGL(self, width, height):
         if height == 0:
             height = 1
@@ -71,21 +53,6 @@ class GLView(QtOpenGL.QGLWidget):
         glOrtho ( -aspect , aspect , -1 , 1 , -10.0 , 10.0 )
         glMatrixMode ( GL_MODELVIEW )
         #PerspectiveCamera(30.0, aspect, 1.0, 1000.0).gl()
-
-    def mousePressEvent(self, event):
-        self._camera_tool.mousePressEvent(event)
-
-    def mouseMoveEvent(self, event):
-        self._camera_tool.mouseMoveEvent(event)
-        self.updateGL()
-
-    def wheelEvent(self, event):
-        self._camera_tool.wheelEvent(event)
-        self.updateGL()
-
-    def keyPressEvent (self, event):
-        self._camera_tool.keyPressEvent(event)
-        self.updateGL()
 
     def unproject(self, p_xy):
         projection_mat = glGetDouble(GL_PROJECTION_MATRIX)
@@ -100,18 +67,6 @@ class GLView(QtOpenGL.QGLWidget):
         p = p_near - (p_near[2] / ray[2]) * ray
 
         return p_near, ray
-
-    def setModel(self, model):
-        self._model = model
-        bb = model.boundingBox()
-        self._focus_gl = lookAtBoundingBox(bb)
-
-    def setRGBAD(self, RGBA_8U, D_32F):
-        model = ImagePlane(RGBA_8U)
-        if D_32F is not None:
-            model.setDepth(D_32F)
-        self.setModel(model)
-        self.update()
 
     def _renderBackGround(self):
         self.width()

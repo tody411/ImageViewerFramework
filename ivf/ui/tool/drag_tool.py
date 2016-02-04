@@ -36,7 +36,6 @@ class DragTool(BaseTool):
 
     def mouseMoveEvent(self, e):
         if e.buttons() & Qt.LeftButton:
-
             self._drag_point = self._mousePosition(e)
             self.outPoint.emit(self._drag_point)
             self._view.update()

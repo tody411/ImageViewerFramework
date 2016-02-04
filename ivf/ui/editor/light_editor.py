@@ -26,13 +26,13 @@ class LightDirEditor(GLView):
         self.setMaximumSize(128, 128)
 
     def initializeGL(self):
-        glClearColor(0.8, 0.8, 1.0, 0.0)
+        glClearColor(0.8, 0.8, 1.0, 1.0)
         glEnable(GL_TEXTURE_2D)
         glEnable(GL_BLEND)
         glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
         glDisable(GL_DEPTH_TEST)
         glDisable(GL_CULL_FACE)
-        glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH)
+        #glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH)
 
         glClearColor(0.2, 0.4, 0.8, 1.0)
         glClearDepth(1.0)
@@ -41,8 +41,10 @@ class LightDirEditor(GLView):
         self.setLightData(np.array([0.0, 0.0, 1.0]))
 
     def paintGL(self):
-        glColorMask(True, True, True, True)
-        glClear(GL_COLOR_BUFFER_BIT)
+        #glColorMask(True, True, True, True)
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        self._renderBackGround()
+        glLoadIdentity()
 
         self._lambert_shader.bind()
 
@@ -65,8 +67,14 @@ class LightDirEditor(GLView):
         self._lambert_shader.release()
 
     def resizeGL(self, width, height):
+        if height == 0:
+            height = 1
+
         glViewport(0, 0, width, height)
+        aspect = width / float(height)
+        glMatrixMode ( GL_PROJECTION )
         glLoadIdentity()
+        glOrtho ( -aspect , aspect , -1 , 1 , -10.0 , 10.0 )
 
     def mousePressEvent(self, e):
         pass

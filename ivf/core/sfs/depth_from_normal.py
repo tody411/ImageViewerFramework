@@ -118,13 +118,18 @@ def normalHeightConstraints(A_8U, N_32F, w_cons=0.05):
 
 
 def normalLaplacianConstraints(A_8U, N_32F, w_cons=1.0):
-    epsilon = 0.3
+    epsilon = 0.01
 
 #     N0_32F = np.array(N_32F)
 #     N0_32F[:, :, 2] = np.clip(N0_32F[:, :, 2], epsilon, 1.0)
 #
 #     for ci in range(3):
 #         N0_32F[:, :, ci] = N0_32F[:, :, ci] / N0_32F[:, :, 2]
+
+#     Nx = np.zeros(N_32F.shape, dtype=np.float32)
+#     Nx[:-1, :, :] = N_32F[1:, :, :] - N_32F[:-1, :, :]
+#     Ny = np.zeros(N_32F.shape, dtype=np.float32)
+#     Ny[:, :-1, :] = N_32F[:, 1:, :] - N_32F[:, :-1, :]
 
     Nx = cv2.Sobel(N_32F, cv2.CV_64F, 1, 0, ksize=1)
     Ny = cv2.Sobel(N_32F, cv2.CV_64F, 0, 1, ksize=1)
@@ -138,7 +143,7 @@ def normalLaplacianConstraints(A_8U, N_32F, w_cons=1.0):
                        [1, w, -1, -w, 0],
                        shape=(num_verts, num_verts))
 
-    b = Nx[:, 0] - Ny[:, 1]
+    b = (Nx[:, 0] - Ny[:, 1])
     b = w_cons * b
     return A, b
 

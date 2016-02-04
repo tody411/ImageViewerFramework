@@ -33,6 +33,7 @@ from ivf.cmds.sparse_interpolation.bilateral_smoothing import BilateralSmoothing
 from ivf.cmds.sparse_interpolation.bilateral_normal_smoothing import BilateralNormalSmoothingCommand
 from ivf.cmds.sparse_interpolation.sparse_sampling import SparseSamplingCommand
 from ivf.cmds.sfs.depth_to_normal import DepthToNormalCommand
+from ivf.ui.model_view import ModelView
 
 
 ## Main Window
@@ -44,7 +45,7 @@ class MainWindow(QMainWindow):
         self.setAcceptDrops(True)
         self._scene = Scene()
         self._image_view = ImageView()
-        self._depth_view = GLView()
+        self._depth_view = ModelView()
 
         self._createCentralWidget([('Image View', self._image_view),
                                    ('Depth View', self._depth_view)])
@@ -112,9 +113,6 @@ class MainWindow(QMainWindow):
         display_command_action_group = DisplayCommand(self._scene, self._image_view, parent=display_menu).actionGroup()
         for action in display_command_action_group.actions():
             display_menu.addAction(action)
-
-        window_menu = menu_bar.addMenu("&Window")
-        self._addCommand(DepthViewCommand(self._scene, parent=window_menu), window_menu)
 
     def _addCommand(self, cmd, parent_menu):
         parent_menu.addAction(cmd.action())
