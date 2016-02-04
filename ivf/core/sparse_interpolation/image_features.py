@@ -1,8 +1,8 @@
 
 # -*- coding: utf-8 -*-
-## @package ivf.core.sparse_smoothing.image_features
+## @package ivf.core.sparse_interpolation.image_features
 #
-#  ivf.core.sparse_smoothing.image_features utility package.
+#  ivf.core.sparse_interpolation.image_features utility package.
 #  @author      tody
 #  @date        2016/02/03
 
@@ -27,7 +27,7 @@ def foreGroundFeatures(image):
 
 
 def positionFeatures(image):
-    h, w, cs = image.shape
+    h, w = image.shape[:2]
 
     x = np.arange(w)
     y = np.arange(h)
