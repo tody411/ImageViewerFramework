@@ -31,6 +31,7 @@ from ivf.cmds.load_normal import LoadNormalCommand
 from ivf.cmds.save_depth import SaveDepthCommand
 from ivf.cmds.sparse_smoothing.bilateral_smoothing import BilateralSmoothingCommand
 from ivf.cmds.sparse_smoothing.bilateral_normal_smoothing import BilateralNormalSmoothingCommand
+from ivf.cmds.sfs.depth_to_normal import DepthToNormalCommand
 
 
 ## Main Window
@@ -94,6 +95,7 @@ class MainWindow(QMainWindow):
         self._addCommand(IBMECommand(self._scene, parent=sfs_menu), sfs_menu)
         self._addCommand(LumoCommand(self._scene, parent=sfs_menu), sfs_menu)
         self._addCommand(DepthFromNormalCommand(self._scene, parent=sfs_menu), sfs_menu)
+        self._addCommand(DepthToNormalCommand(self._scene, parent=sfs_menu), sfs_menu)
         self._addCommand(BilateralNormalSmoothingCommand(self._scene, parent=sfs_menu), sfs_menu)
 
         tool_menu = menu_bar.addMenu("&Tool")

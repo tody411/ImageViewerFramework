@@ -118,22 +118,19 @@ def normalHeightConstraints(A_8U, N_32F, w_cons=0.05):
 
 
 def normalLaplacianConstraints(A_8U, N_32F, w_cons=1.0):
-    epsilon = 0.1
+    epsilon = 0.3
+
+#     N0_32F = np.array(N_32F)
+#     N0_32F[:, :, 2] = np.clip(N0_32F[:, :, 2], epsilon, 1.0)
+#
+#     for ci in range(3):
+#         N0_32F[:, :, ci] = N0_32F[:, :, ci] / N0_32F[:, :, 2]
 
     Nx = cv2.Sobel(N_32F, cv2.CV_64F, 1, 0, ksize=1)
     Ny = cv2.Sobel(N_32F, cv2.CV_64F, 0, 1, ksize=1)
 
-
-#     N_L = np.zeros(N_32F.shape)
-#     N_L[1:-1, 1:-1, :] = N_32F[1:-1, 1:-1, :] - (N_32F[0:-2, 1:-1, :]
-#                                                  + N_32F[2:, 1:-1, :]
-#                                                  + N_32F[1:-1, 0:-2, :]
-#                                                  + + N_32F[1:-1, 2:, :]) / 4.0
     Nx = Nx.reshape(-1, 3)
     Ny = Ny.reshape(-1, 3)
-
-    Nxz = np.clip(Nx[:, 2], epsilon, 1.0)
-    Nyz = np.clip(Ny[:, 2], epsilon, 1.0)
 
     h, w = A_8U.shape
     num_verts = h * w
@@ -166,29 +163,6 @@ def solveMG(A, b, with_normalize=False):
     return x
 
 
-def depthToNormal(D_32F):
-    h, w = D_32F.shape
-    gx = cv2.Sobel(D_32F, cv2.CV_64F, 1, 0, ksize=3)
-    gy = cv2.Sobel(D_32F, cv2.CV_64F, 0, 1, ksize=3)
-
-    T_32F = np.zeros((h, w, 3), dtype=np.float32)
-    T_32F[:, :, 0] = 1.0
-    T_32F[:, :, 2] = gx
-
-    B_32F = np.zeros((h, w, 3), dtype=np.float32)
-    B_32F[:, :, 1] = 1.0
-    B_32F[:, :, 2] = - gy
-
-    T_flat = T_32F.reshape(-1, 3)
-    B_flat = B_32F.reshape(-1, 3)
-
-    N_flat = np.cross(T_flat, B_flat)
-    N_32F = N_flat.reshape(h, w, 3)
-
-    N_32F = normalizeImage(N_32F)
-    return N_32F
-
-
 def depthFromNormal(N_32F, A_8U):
     if A_8U is not None:
         N_32F = preProcess(N_32F, A_8U)
@@ -204,8 +178,6 @@ def depthFromNormal(N_32F, A_8U):
 
     D_flat = solveMG(A, b)
     D_32F = D_flat.reshape(h, w)
-    #D_32F = postProcess(D_32F, A_8U)
-    # N_32F = depthToNormal(D_32F)
 
     return D_32F
 
@@ -224,17 +196,6 @@ def preProcess(N0_32F, A_8U):
     #N_32F[background, :] = np.array([0.0, 0.0, 1.0])
     N_32F = normalizeImage(N_32F)
     return N_32F
-
-
-def postProcess(D_32F, A_8U):
-    foreground = A_8U > 200
-    D_min = np.min(D_32F[foreground])
-
-    background = True - foreground
-
-    D_32F[background] = D_min
-    # D_32F[D_32F < 0.0] = 0.0
-    return D_32F
 
 
 def plotDepth(D_32F):
