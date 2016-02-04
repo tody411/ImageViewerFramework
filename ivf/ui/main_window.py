@@ -29,8 +29,8 @@ from ivf.cmds.window.depth_view import DepthViewCommand
 from ivf.ui.glview import GLView
 from ivf.cmds.load_normal import LoadNormalCommand
 from ivf.cmds.save_depth import SaveDepthCommand
-from ivf.cmds.sparse_smoothing.bilateral_smoothing import BilateralSmoothingCommand
-from ivf.cmds.sparse_smoothing.bilateral_normal_smoothing import BilateralNormalSmoothingCommand
+from ivf.cmds.sparse_interpolation.bilateral_smoothing import BilateralSmoothingCommand
+from ivf.cmds.sparse_interpolation.bilateral_normal_smoothing import BilateralNormalSmoothingCommand
 from ivf.cmds.sparse_interpolation.sparse_sampling import SparseSamplingCommand
 from ivf.cmds.sfs.depth_to_normal import DepthToNormalCommand
 
