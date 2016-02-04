@@ -1,8 +1,8 @@
 
 # -*- coding: utf-8 -*-
-## @package ivf.cmds.sparse_smoothing.bilateral_normal_smoothing
+## @package ivf.cmds.sparse_interpolation.bilateral_normal_smoothing
 #
-#  ivf.cmds.sparse_smoothing.bilateral_normal_smoothing utility package.
+#  ivf.cmds.sparse_interpolation.bilateral_normal_smoothing utility package.
 #  @author      tody
 #  @date        2016/02/03
 
@@ -11,7 +11,7 @@
 import cv2
 
 from ivf.cmds.base_cmds import BaseCommand
-from ivf.core.sparse_smoothing.bilateral_normal_smoothing import bilateralNormalSmoothing
+from ivf.core.sparse_interpolation.bilateral_normal_smoothing import bilateralNormalSmoothing
 
 from ivf.scene.scene import Scene
 

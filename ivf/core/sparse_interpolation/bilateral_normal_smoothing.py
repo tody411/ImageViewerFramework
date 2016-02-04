@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-## @package ivf.cmds.sparse_smoothing.bilateral_normal_smoothing
+## @package ivf.cmds.sparse_interpolation.bilateral_normal_smoothing
 #
-#  ivf.cmds.sparse_smoothing.bilateral_normal_smoothing utility package.
+#  ivf.cmds.sparse_interpolation.bilateral_normal_smoothing utility package.
 #  @author      tody
 #  @date        2016/02/03
 
@@ -9,7 +9,7 @@ import numpy as np
 
 from sklearn.utils import shuffle
 
-from ivf.core.sparse_smoothing.image_features import positionFeatures, LabFeatures, foreGroundFeatures
+from ivf.core.sparse_interpolation.image_features import positionFeatures, LabFeatures, foreGroundFeatures
 from scipy.interpolate.rbf import Rbf
 from ivf.cv.image import Lab2rgb, to8U, setAlpha, alpha
 from ivf.cv.normal import normalizeImage

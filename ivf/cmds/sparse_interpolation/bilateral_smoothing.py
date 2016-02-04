@@ -1,15 +1,15 @@
 
 # -*- coding: utf-8 -*-
-## @package ivf.cmds.sparse_smoothing.bilateral_smoothing
+## @package ivf.cmds.sparse_interpolation.bilateral_smoothing
 #
-#  ivf.cmds.sparse_smoothing.bilateral_smoothing utility package.
+#  ivf.cmds.sparse_interpolation.bilateral_smoothing utility package.
 #  @author      tody
 #  @date        2016/02/03
 
 import cv2
 
 from ivf.cmds.base_cmds import BaseCommand
-from ivf.core.sparse_smoothing.bilateral_smoothing import bilateralSmoothing
+from ivf.core.sparse_interpolation.bilateral_smoothing import bilateralSmoothing
 
 
 class BilateralSmoothingCommand(BaseCommand):
@@ -19,7 +19,7 @@ class BilateralSmoothingCommand(BaseCommand):
     def _runImp(self):
         image = self._scene.image()
         h, w = image.shape[:2]
-        w_low = 512
+        w_low = 256
         h_low = w_low * h / w
         image_low = cv2.resize(image, (w_low, h_low))
 

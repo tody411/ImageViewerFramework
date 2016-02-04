@@ -31,6 +31,7 @@ from ivf.cmds.load_normal import LoadNormalCommand
 from ivf.cmds.save_depth import SaveDepthCommand
 from ivf.cmds.sparse_smoothing.bilateral_smoothing import BilateralSmoothingCommand
 from ivf.cmds.sparse_smoothing.bilateral_normal_smoothing import BilateralNormalSmoothingCommand
+from ivf.cmds.sparse_interpolation.sparse_sampling import SparseSamplingCommand
 from ivf.cmds.sfs.depth_to_normal import DepthToNormalCommand
 
 
@@ -90,6 +91,7 @@ class MainWindow(QMainWindow):
         self._addCommand(ResizeImageCommand(self._scene, (0.5, 0.5), "&Down scale", parent=operation_menu), operation_menu)
         self._addCommand(SlicCommand(self._scene, parent=operation_menu), operation_menu)
         self._addCommand(BilateralSmoothingCommand(self._scene, parent=operation_menu), operation_menu)
+        self._addCommand(SparseSamplingCommand(self._scene, parent=operation_menu), operation_menu)
 
         sfs_menu = menu_bar.addMenu("&Shape From Shading")
         self._addCommand(IBMECommand(self._scene, parent=sfs_menu), sfs_menu)
