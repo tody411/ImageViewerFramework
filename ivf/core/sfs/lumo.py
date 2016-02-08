@@ -12,7 +12,8 @@ import pyamg
 from pyamg.gallery import laplacian
 
 from ivf.core.sfs.silhouette_normal import silhouetteNormal
-from ivf.np.norm import normalizeVectors
+from ivf.np.norm import normalizeVectors, l2NormVectors
+from ivf.core.solver import amg_solver
 
 
 ## Normal constraints from the alpha mask and the initial normal.
@@ -40,13 +41,18 @@ def normalConstraints(A_8U, N0_32F, alpha_th=20, w_sil=1e+10):
     return A, b
 
 
-def solveMG(A, b):
-    ml = pyamg.smoothed_aggregation_solver(A)
+def computeNz(N):
+    Nx, Ny = N[:, 0], N[:, 1]
 
-    x = np.zeros(b.shape)
-    for bi in range(3):
-        x[:, bi] = ml.solve(b[:, bi], tol=1e-10)
-    return x
+    Nxy_sq = l2NormVectors(Nx) + l2NormVectors(Ny)
+    Nz_sq = 1.0 - Nxy_sq
+    Nz_sq = np.clip(Nz_sq, 0.0, 1.0)
+    Nz = np.sqrt(Nz_sq)
+    Nz = np.clip(Nz, 0.0, 1.0)
+
+    N_new = np.array(N)
+    N_new[:, 2] = Nz
+    return N_new
 
 
 def estimateNormal(A_8U):
@@ -54,7 +60,8 @@ def estimateNormal(A_8U):
     N0_32F = silhouetteNormal(A_8U)
     A, b = normalConstraints(A_8U, N0_32F)
 
-    N_flat = solveMG(A, b)
+    N_flat = amg_solver.solve(A, b)
+    N_flat = computeNz(N_flat)
     N_flat = normalizeVectors(N_flat)
     N_32F = N_flat.reshape(h, w, 3)
 

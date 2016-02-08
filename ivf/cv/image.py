@@ -191,3 +191,21 @@ def luminance(img):
     if L.dtype != np.uint8:
         return (1.0 / 100.0) * L
     return L
+
+
+## Trim with alpha channel.
+def trim(img, A_8U=None):
+    if A_8U is None:
+        A_8U = alpha(img)
+    if A_8U is None:
+        return img
+
+    ys, xs = np.where(A_8U > 0)
+
+    x_min, x_max = np.min(xs), np.max(xs)
+    y_min, y_max =  np.min(ys), np.max(ys)
+
+    if len(img.shape) == 2:
+        return img[y_min:y_max+1, x_min:x_max+1]
+
+    return img[y_min:y_max+1, x_min:x_max+1, :]

@@ -57,3 +57,5 @@ Temporary Items
 # Sublime
 *.sublime-project
 *.sublime-workspace
+
+setting.json
