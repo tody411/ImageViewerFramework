@@ -86,6 +86,7 @@ def loadNormal(file_path):
     C_8U[:, :, :3] = rgb_8U
     C_8U[:, :, 3] = A_8U
     N_32F = colorToNormal(C_8U)
+    N_32F = cv2.GaussianBlur(N_32F, (0, 0), 0.5)
     return N_32F, A_8U
 
 

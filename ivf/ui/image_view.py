@@ -14,6 +14,7 @@ import numpy as np
 from ivf.ui.tool.camera_tool import CameraTool2D
 from ivf.ui.tool.stroke_tool import StrokeTool
 from ivf.ui.qimage_util import ndarrayToQImage
+from ivf.ui.tool.normal_constraint_tool import NormalConstraintTool
 
 
 ## Image View
@@ -115,7 +116,6 @@ class ImageView(QWidget):
         for overlay in self._view_overlays:
             overlay(painter)
 
-
     def setTool(self, tool):
         self._tool = tool
         self._tool.setView(self)
@@ -194,7 +194,7 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     view = ImageView()
     view.show()
-    tool = StrokeTool()
+    tool = NormalConstraintTool()
     view.setTool(tool)
 
     image = np.random.rand(256, 256, 3)

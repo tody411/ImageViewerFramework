@@ -16,18 +16,18 @@ class MaterialConstraint(Data):
     diffuse_type = 0
     specular_type = 1
     ## Constructor
-    def __init__(self, point=(0, 0), shading_type=0):
+    def __init__(self, position=(0, 0), shading_type=0):
         super(MaterialConstraint, self).__init__()
-        self._point = point
+        self._position = position
 
     ## dictionary data for writeJson method.
     def _dataDict(self):
-        data = {"point": np.array(self._point).tolist()}
+        data = {"position": np.array(self._position).tolist()}
         return data
 
     ## set dictionary data for loadJson method.
     def _setDataDict(self, data):
-        self._point = data["point"]
+        self._position = data["position"]
 
 
 class MaterialConstraintSet(Data):
@@ -43,7 +43,7 @@ class MaterialConstraintSet(Data):
 
 class MaterialConstraintSets(Data):
     ## Constructor
-    def __init__(self, point):
+    def __init__(self, position):
         super(MaterialConstraintSets, self).__init__()
         self._constraint_sets = []
 

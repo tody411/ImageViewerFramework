@@ -28,8 +28,8 @@ class Stroke(Data):
             return 0
         return np.average(self._brush_sizes)
 
-    def addStrokePoint(self, point, brush_size):
-        self._points.append(point)
+    def addStrokePoint(self, position, brush_size):
+        self._points.append(position)
         self._brush_sizes.append(brush_size)
 
     ## dictionary data for writeJson method.

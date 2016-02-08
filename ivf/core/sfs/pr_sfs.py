@@ -72,7 +72,7 @@ class Wu08SFS(ShapeFromShading):
         N = np.array(N0)
 
         w_I = 1.0
-        w_smooth = 20.0
+        w_smooth = 1.0
         for k in xrange(10):
             x = N.flatten()
             sor_iter(A, x, b, 1.3, iterations=10)
@@ -81,10 +81,27 @@ class Wu08SFS(ShapeFromShading):
                 N[:, i] = w_I * (N[:, i] + L[i] * dI) + w_smooth * N_smooth[:, i]
 
             N = normalizeVectors(N)
+
             NL = np.clip(np.dot(N, L), 0.0, 1.0)
             dI = I - NL
 
         self._N_32F = N.reshape(h, w, 3)
+
+    def _NzToNxy(self, N):
+        gx = - cv2.Sobel(N[:, :, 2], cv2.CV_64F, 1, 0, ksize=1)
+        gy = cv2.Sobel(N[:, :, 2], cv2.CV_64F, 0, 1, ksize=1)
+
+        epsilon = 0.0001
+        gxy_norm = np.clip(np.sqrt(gx * gx + gy * gy), epsilon, 1.0)
+        Nxy_norm = np.sqrt(np.clip(1.0 - N[:, :, 2] * N[:, :, 2], 0.0, 1.0))
+
+        gx = gx * Nxy_norm / gxy_norm
+        gy = gy * Nxy_norm / gxy_norm
+
+        N[:, :, 0] = gx
+        N[:, :, 1] = gy
+
+        return N
 
     def _estimateBrightness(self):
         I_32F = self._I0_32F

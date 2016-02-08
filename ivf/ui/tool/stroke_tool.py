@@ -134,7 +134,9 @@ class StrokeTool(BaseTool):
         painter.setPen(pen)
 
         p = self._p_old
-        painter.drawPoint(QPoint(p[0], p[1]))
+
+        if p is not None:
+            painter.drawPoint(QPoint(p[0], p[1]))
 
         for stroke_set in self._stroke_sets.strokeSets():
             color = stroke_set.color()
