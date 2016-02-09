@@ -24,6 +24,12 @@ def laplacianMatrix(image_size, num_elements=1):
     return L
 
 
+def l2Regularization(num_verts, w_rg=1.0):
+    diags = np.ones(num_verts)
+    A = w_rg * scipy.sparse.diags(diags, 0)
+    return A
+
+
 @timing_func
 def silhouetteConstraints(A_8U, w_cons=1e+10, th_alpha=0.2, is_flat=False):
     h, w = A_8U.shape

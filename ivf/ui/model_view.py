@@ -28,6 +28,10 @@ class ModelView(GLView):
         self._camera_tool = CameraTool3D()
         self._focus_gl = None
         self._model = None
+        self._return_func = None
+
+    def setReturnCallback(self, return_func):
+        self._return_func = return_func
 
     def paintGL(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -35,8 +39,6 @@ class ModelView(GLView):
         self._renderBackGround()
 
         glLoadIdentity()
-        #gluLookAt(0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0)
-
         self._camera_tool.gl()
 
         if self._focus_gl is not None:
@@ -73,6 +75,11 @@ class ModelView(GLView):
 
     def keyPressEvent (self, event):
         self._camera_tool.keyPressEvent(event)
+
+        if event.key() == Qt.Key_Enter or event.key() == Qt.Key_Return:
+            if self._return_func is not None:
+                self._return_func()
+
         self.updateGL()
 
     def setModel(self, model):

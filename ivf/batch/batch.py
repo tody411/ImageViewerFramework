@@ -53,12 +53,12 @@ class DatasetBatch(DirectoryBatch):
         self._data_name = ""
         self._data_file_name = ""
         self._data_file = ""
+        self._result_root = subDirectory(self._target_dir, "results/" + self._name)
+        self._dataset_files = datasetFiles(self._target_dir)
+        self._data_file_id = 0
 
     def run(self):
-        dataset_files = datasetFiles(self._target_dir)
-        self._result_root = subDirectory(self._target_dir, "results/" + self._name)
-
-        for data_file in dataset_files:
+        for data_file in self._dataset_files:
             self._data_file_name = os.path.basename(data_file)
             self._data_name = os.path.splitext(self._data_file_name)[0]
             self._data_file = data_file
@@ -71,6 +71,27 @@ class DatasetBatch(DirectoryBatch):
             if self._output_info is not "":
                 message += "=> " + self._output_info
             print message
+
+    def runNext(self):
+        if self._data_file_id >= len(self._dataset_files):
+            return
+
+        data_file = self._dataset_files[self._data_file_id]
+
+        self._data_file_name = os.path.basename(data_file)
+        self._data_name = os.path.splitext(self._data_file_name)[0]
+        self._data_file = data_file
+        timer = Timer(self._name)
+        self._runImp()
+        timer.stop()
+
+        message = self._data_name + ":  " + str(timer.secs()) + "sec \n"
+        message += "  " + self._input_info + "\n"
+        if self._output_info is not "":
+            message += "=> " + self._output_info
+        print message
+
+        self._data_file_id += 1
 
     def resultFile(self, file_name):
         return os.path.join(self._result_root, file_name)

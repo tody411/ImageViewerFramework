@@ -23,10 +23,11 @@ class NormalConstraintTool(BaseTool):
         self._p_old = None
         self._selected_constraint = None
 
-        self._normal_radius = 20.0
+        self._normal_radius = 40.0
 
     def setNormalConstraints(self, normal_constraints):
         self._normal_constraints = normal_constraints
+        self._view.update()
 
     def normalConstraints(self):
         return self._normal_constraints

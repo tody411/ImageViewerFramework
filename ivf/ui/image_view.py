@@ -39,6 +39,11 @@ class ImageView(QWidget):
 
         self.setWindowTitle("Image View")
 
+        self._return_func = None
+
+    def setReturnCallback(self, return_func):
+        self._return_func = return_func
+
     def setTransform(self, transform):
         self._transform = transform
         self.update()
@@ -149,6 +154,10 @@ class ImageView(QWidget):
         self._cameraTool.keyPressEvent(e)
         if self._tool is not None:
             self._tool.keyPressEvent(e)
+
+        if e.key() == Qt.Key_Enter or e.key() == Qt.Key_Return:
+            if self._return_func is not None:
+                self._return_func()
 
     def keyReleaseEvent(self, e):
         self._cameraTool.keyReleaseEvent(e)

@@ -38,13 +38,17 @@ class NormalConstraint(Data):
 
     ## set dictionary data for loadJson method.
     def _setDataDict(self, data):
-        self._position = data["position"]
+        self._position = np.array(data["position"])
+        self._normal = np.array(data["normal"])
 
 
 class NormalConstraintSet(Data):
     ## Constructor
     def __init__(self, constraints=[]):
         self._constraints = constraints
+
+    def clear(self):
+        self._constraints = []
 
     def empty(self):
         return len(self._constraints) == 0
