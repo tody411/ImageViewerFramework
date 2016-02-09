@@ -29,9 +29,9 @@ def normalizeVector(x):
 
 
 ## Normalize vectors (n x m matrix).
-def normalizeVectors(x):
+def normalizeVectors(x, th=0):
     norm = normVectors(x)
-    nonZeroIDs = norm > 0
+    nonZeroIDs = norm > th
     x[nonZeroIDs] = (x[nonZeroIDs].T / norm[nonZeroIDs]).T
     return x
 

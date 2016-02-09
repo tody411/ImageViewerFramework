@@ -92,18 +92,24 @@ class SFSBatch(DatasetBatch):
         super(SFSBatch, self).__init__(name, dataset_name)
 
     def _runImp(self):
+        if self._data_name != "Man":
+            return
         normal_data = loadNormal(self._data_file)
 
         if normal_data is None:
             return
 
         N0_32F, A_8U = normal_data
+
+        #N0_32F = cv2.resize(N0_32F, (64, 64))
+        #A_8U = cv2.resize(A_8U, N0_32F.shape[:2])
+
         A_32F = to32F(A_8U)
 
         L = normalizeVector(np.array([-0.2, 0.3, 0.7]))
 
-        C0_32F = ToonShader().diffuseShading(L, N0_32F)
-        # C0_32F = LambertShader().diffuseShading(L, N0_32F)
+        # C0_32F = ToonShader().diffuseShading(L, N0_32F)
+        C0_32F = LambertShader().diffuseShading(L, N0_32F)
 
         sfs_method = Wu08SFS(L, C0_32F, A_8U)
         sfs_method.run()

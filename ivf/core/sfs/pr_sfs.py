@@ -12,7 +12,7 @@ from ivf.core.sfs.sfs import ShapeFromShading
 
 from ivf.core.sfs.silhouette_normal import silhouetteNormal
 from ivf.core.sfs.lumo import normalConstraints, computeNz
-from ivf.core.solver import amg_solver
+from ivf.core.solver import amg_solver, image_solver
 from ivf.np.norm import normalizeVectors
 from ivf.core.sfs.constraints import silhouetteConstraints, laplacianMatrix, gradientConstraints, laplacianConstraints,\
     brightnessConstraints
@@ -20,6 +20,7 @@ from ivf.core.shader.lambert import diffuse
 from ivf.core.sfs.reflectance_estimation import LambertReflectanceEstimation
 from ivf.core.solver.amg_solver import gauss_seidel_iter, sor_iter
 from ivf.util.timer import timing_func
+from ivf.cv.normal import normalizeImage
 
 
 class Wu08SFS(ShapeFromShading):
@@ -28,8 +29,9 @@ class Wu08SFS(ShapeFromShading):
         self._N0_32F = None
 
     def _runImp(self):
-        A, b = self._computeInitialNormal()
-        self._projectBrightness(A, b)
+        if self._N0_32F is None:
+            self._computeInitialNormal()
+        self._optimize()
 
         L = self._L
         self._I_32F = diffuse(self._N_32F, L)
@@ -37,8 +39,11 @@ class Wu08SFS(ShapeFromShading):
         self._C_32F = reflectance.shading(self._I_32F)
 
     def _computeInitialNormal(self):
-        #print self._A_8U
         A_8U = self._A_8U
+        self._N0_32F = np.float64(silhouetteNormal(A_8U))
+
+        return
+
         h, w = A_8U.shape
         A_L = laplacianMatrix((h, w), num_elements=3)
         A_sil, b_sil = silhouetteConstraints(A_8U, is_flat=True)
@@ -51,10 +56,52 @@ class Wu08SFS(ShapeFromShading):
         N = normalizeVectors(N)
         N_32F = N.reshape(h, w, 3)
         self._N0_32F = N_32F
-        return A, b
+
+    def _laplacianConstraint(self, w_c=0.5):
+        def func(N):
+            N_smooth = image_solver.laplacian(N) + N
+            N_smooth = computeNz(N_smooth.reshape(-1, 3)).reshape(N.shape)
+            return w_c, N_smooth
+        return func
+
+    def _brightnessConstraint(self, L, I_32F, w_c=0.1):
+        I_level = image_solver.LevelImage(I_32F)
+
+        def func(N):
+            I_32F_level = I_level.level(N)
+            h, w = N.shape[:2]
+            NL = np.dot(N.reshape(-1, 3), L)
+            NL = np.clip(NL, 0.0, 1.0)
+            dI = I_32F_level.reshape(h*w) - NL
+            dI = dI.reshape(h, w)
+            N_I = np.zeros_like(N)
+            for i in range(3):
+                N_I[:, :, i] = N[:, :, i] + dI[:, :] * L[i]
+            return w_c, N_I
+        return func
+
+    def _silhouetteConstraint(self, N0_32F, A_8U, w_c=0.5):
+        N0_level = image_solver.LevelImage(N0_32F)
+        A0_level = image_solver.LevelImage(A_8U)
+
+        def func(N):
+            A_8U_level = A0_level.level(N)
+            N0_32F_level = N0_level.level(N)
+
+            N_sil = np.array(N)
+            N_sil[A_8U_level == 0, :] = N0_32F_level[A_8U_level == 0, :]
+
+            return w_c, N_sil
+        return func
+
+    def _postFunc(self):
+        def func(N):
+            N = normalizeImage(N, th=0.0)
+            return N
+        return func
 
     @timing_func
-    def _projectBrightness(self, A, b):
+    def _optimize(self):
         I_32F = self._I0_32F
         h, w = I_32F.shape[:2]
         I = I_32F.reshape(h * w)
@@ -67,23 +114,17 @@ class Wu08SFS(ShapeFromShading):
 
         I = self._estimateBrightness()
 
-        dI = I - NL
+        I_32F = I.reshape(h, w)
 
-        N = np.array(N0)
+        N = np.array(N0_32F)
 
-        w_I = 1.0
-        w_smooth = 1.0
-        for k in xrange(10):
-            x = N.flatten()
-            sor_iter(A, x, b, 1.3, iterations=10)
-            N_smooth = x.reshape(-1, 3)
-            for i in range(3):
-                N[:, i] = w_I * (N[:, i] + L[i] * dI) + w_smooth * N_smooth[:, i]
+        A_8U = self._A_8U
 
-            N = normalizeVectors(N)
-
-            NL = np.clip(np.dot(N, L), 0.0, 1.0)
-            dI = I - NL
+        solver_iter = image_solver.solveIterator([self._laplacianConstraint(),
+                                                  self._brightnessConstraint(L, I_32F),
+                                                  self._silhouetteConstraint(N0_32F, A_8U)],
+                                                 [self._postFunc()])
+        N = image_solver.solveMG(N, solver_iter, iterations=3)
 
         self._N_32F = N.reshape(h, w, 3)
 

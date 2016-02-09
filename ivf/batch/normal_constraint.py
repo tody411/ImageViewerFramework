@@ -41,7 +41,7 @@ class NormalConstraintBatch(DatasetBatch):
 
         if os.path.exists(self.constraintFile()):
             self._normal_constraint.load(self.constraintFile())
-        self._view.render(setAlpha(C0_32F, A_32F))
+        self._tool.setImage(setAlpha(C0_32F, A_32F))
 
     def constraintFile(self):
         return self.resultFile(self._data_name + "_normal_constraint.json")
@@ -55,7 +55,7 @@ class NormalConstraintBatch(DatasetBatch):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     view = ImageView()
-    view.show()
+    view.showMaximized()
     tool = NormalConstraintTool()
     view.setTool(tool)
     batch = NormalConstraintBatch(view, tool)

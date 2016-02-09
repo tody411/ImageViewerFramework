@@ -5,7 +5,7 @@ from ivf.core.shader.shader import Shader
 
 
 class LambertShader(Shader):
-    def __init__(self, ka=np.array([0.2, 0.2, 0.4]), kd=np.array([0.1, 0.1, 0.5])):
+    def __init__(self, ka=np.array([0.2, 0.2, 0.4]), kd=np.array([0.2, 0.2, 0.5])):
         super(LambertShader, self).__init__()
         self._ka = ka
         self._kd = kd

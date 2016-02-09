@@ -40,6 +40,7 @@ class ImageView(QWidget):
         self.setWindowTitle("Image View")
 
         self._return_func = None
+        self._image = None
 
     def setReturnCallback(self, return_func):
         self._return_func = return_func
@@ -49,9 +50,13 @@ class ImageView(QWidget):
         self.update()
 
     def render(self, image):
+        self._image = image
         self._q_image = ndarrayToQImage(image)
 
         self.update()
+
+    def image(self):
+        return self._image
 
     def setOverlayFunc(self, overlay_func):
         self._overlay_func = overlay_func

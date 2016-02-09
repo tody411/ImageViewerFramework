@@ -13,6 +13,10 @@ from PyQt4.QtCore import *
 from ivf.ui.tool.base_tool import BaseTool
 from ivf.scene.normal_constraint import NormalConstraintSet, NormalConstraint
 from ivf.np.norm import normVectors
+from ivf.core.sfs.constraints import normalConstraints, laplacianMatrix, silhouetteConstraints
+from ivf.core.solver import amg_solver
+from ivf.cv.normal import normalizeImage, normalToColor
+from ivf.cv.image import alpha, to8U
 
 
 class NormalConstraintTool(BaseTool):
@@ -22,8 +26,8 @@ class NormalConstraintTool(BaseTool):
         self._normal_constraints = NormalConstraintSet()
         self._p_old = None
         self._selected_constraint = None
-
         self._normal_radius = 40.0
+        self._image = None
 
     def setNormalConstraints(self, normal_constraints):
         self._normal_constraints = normal_constraints
@@ -31,6 +35,10 @@ class NormalConstraintTool(BaseTool):
 
     def normalConstraints(self):
         return self._normal_constraints
+
+    def setImage(self, image):
+        self._image = image
+        self._view.render(image)
 
     def mousePressEvent(self, e):
         p = self._mousePosition(e)
@@ -67,7 +75,15 @@ class NormalConstraintTool(BaseTool):
         self._view.update()
 
     def keyPressEvent(self, e):
-        pass
+        if e.key() == Qt.Key_0:
+            self._view.render(self._image)
+
+        if e.key() == Qt.Key_1:
+            self._interpolateNormal()
+
+        if e.key() == Qt.Key_Delete:
+            self._normal_constraints.clear()
+            self._view.update()
 
     def keyReleaseEvent(self, e):
         pass
@@ -89,6 +105,34 @@ class NormalConstraintTool(BaseTool):
             return True
 
         return False
+
+    def _interpolateNormal(self):
+        if self._normal_constraints.empty():
+            return
+
+        ps = np.int32(self._normal_constraints.positions())
+        ns = self._normal_constraints.normals()
+
+        h, w = self._image.shape[:2]
+        N0_32F = np.zeros((h, w, 3))
+        N0_32F[ps[:, 1], ps[:, 0]] = ns
+        W_32F = np.zeros((h, w))
+        W_32F[ps[:, 1], ps[:, 0]] = 100.0
+        A_c, b_c = normalConstraints(W_32F, N0_32F)
+        A_8U = None
+        if self._image.shape[2] == 4:
+            A_8U = to8U(alpha(self._image))
+        A_sil, b_sil = silhouetteConstraints(A_8U)
+
+        A_L = laplacianMatrix((h, w))
+        A = A_c + A_L + A_sil
+        b = b_c + b_sil
+
+        N_32F = amg_solver.solve(A, b).reshape(h, w, 3)
+        N_32F = normalizeImage(N_32F)
+
+
+        self._view.render(normalToColor(N_32F, A_8U))
 
     def _overlayFunc(self, painter):
         pen = QPen(QColor.fromRgbF(0.0, 1.0, 0.0, 0.5))

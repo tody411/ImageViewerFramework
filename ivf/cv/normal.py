@@ -43,9 +43,9 @@ def normalToColor(N_32F, A_8U=None):
 
 
 ## Normalize the normal image.
-def normalizeImage(N_32F):
+def normalizeImage(N_32F, th=0.0):
     N_flat = N_32F.reshape((-1, 3))
-    N_flat_normalized = normalizeVectors(N_flat)
+    N_flat_normalized = normalizeVectors(N_flat, th=th)
 
     N_32F_normalized = N_flat_normalized.reshape(N_32F.shape)
     return N_32F_normalized
