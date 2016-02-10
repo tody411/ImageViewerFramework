@@ -13,10 +13,12 @@ from PyQt4.QtCore import *
 from ivf.ui.tool.base_tool import BaseTool
 from ivf.scene.normal_constraint import NormalConstraintSet, NormalConstraint
 from ivf.np.norm import normVectors
-from ivf.core.sfs.constraints import normalConstraints, laplacianMatrix, silhouetteConstraints
-from ivf.core.solver import amg_solver
+from ivf.core.sfs.amg_constraints import normalConstraints, laplacianMatrix, silhouetteConstraints
+from ivf.core.solver import amg_solver, image_solver
 from ivf.cv.normal import normalizeImage, normalToColor
 from ivf.cv.image import alpha, to8U
+from ivf.core.sfs import image_constraints
+from ivf.core.sfs.image_constraints import postNormalize
 
 
 class NormalConstraintTool(BaseTool):
@@ -117,7 +119,33 @@ class NormalConstraintTool(BaseTool):
         N0_32F = np.zeros((h, w, 3))
         N0_32F[ps[:, 1], ps[:, 0]] = ns
         W_32F = np.zeros((h, w))
-        W_32F[ps[:, 1], ps[:, 0]] = 100.0
+        W_32F[ps[:, 1], ps[:, 0]] = 1.0
+
+        A_8U = None
+        if self._image.shape[2] == 4:
+            A_8U = to8U(alpha(self._image))
+
+        N_32F = self._interpolateNormalAMG(N0_32F, W_32F, A_8U)
+
+        self._view.render(normalToColor(N_32F, A_8U))
+
+    def _interpolateNormalImage(self, N0_32F, W_32F, A_8U):
+        constraints = []
+        constraints.append(image_constraints.laplacianConstraints(w_c=0.1))
+        constraints.append(image_constraints.normalConstraints(W_32F, N0_32F, w_c=1.0))
+        constraints.append(image_constraints.silhouetteConstraints(A_8U, w_c=0.5))
+
+        solver_iter = image_solver.solveIterator(constraints,
+                                                 [postNormalize(th=0.0)])
+
+        N_32F = np.array(N0_32F)
+        N_32F = image_solver.solveMG(N_32F, solver_iter, iterations=10)
+        N_32F = image_constraints.NxyToNz(N_32F)
+
+        return N_32F
+
+    def _interpolateNormalAMG(self, N0_32F, W_32F, A_8U):
+        h, w = N0_32F.shape[:2]
         A_c, b_c = normalConstraints(W_32F, N0_32F)
         A_8U = None
         if self._image.shape[2] == 4:
@@ -131,8 +159,7 @@ class NormalConstraintTool(BaseTool):
         N_32F = amg_solver.solve(A, b).reshape(h, w, 3)
         N_32F = normalizeImage(N_32F)
 
-
-        self._view.render(normalToColor(N_32F, A_8U))
+        return N_32F
 
     def _overlayFunc(self, painter):
         pen = QPen(QColor.fromRgbF(0.0, 1.0, 0.0, 0.5))

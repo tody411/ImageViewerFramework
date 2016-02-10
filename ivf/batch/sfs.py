@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 
 from ivf.batch.batch import DatasetBatch
 from ivf.io_util.image import loadNormal
-from ivf.cv.image import to32F, setAlpha, trim, gray2rgb
+from ivf.cv.image import to32F, setAlpha, trim, gray2rgb, luminance
 from ivf.np.norm import normalizeVector
 from ivf.core.sfs.pr_sfs import Wu08SFS
 from ivf.core.shader.lambert import lambertShading, diffuse, LambertShader
@@ -19,6 +19,7 @@ from ivf.cv.normal import normalToColor
 from ivf.plot.window import showMaximize, SubplotGrid
 from ivf.core.sfs.angle_error import angleErros
 from ivf.core.shader.toon import ToonShader
+from ivf.core.sfs.colormap_estimation import ColorMapEstimation
 
 
 class NormalInfoBatch(DatasetBatch):
@@ -108,8 +109,8 @@ class SFSBatch(DatasetBatch):
 
         L = normalizeVector(np.array([-0.2, 0.3, 0.7]))
 
-        # C0_32F = ToonShader().diffuseShading(L, N0_32F)
-        C0_32F = LambertShader().diffuseShading(L, N0_32F)
+        C0_32F = ToonShader().diffuseShading(L, N0_32F)
+        # C0_32F = LambertShader().diffuseShading(L, N0_32F)
 
         sfs_method = Wu08SFS(L, C0_32F, A_8U)
         sfs_method.run()

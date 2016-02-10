@@ -14,13 +14,14 @@ from ivf.core.sfs.silhouette_normal import silhouetteNormal
 from ivf.core.sfs.lumo import normalConstraints, computeNz
 from ivf.core.solver import amg_solver, image_solver
 from ivf.np.norm import normalizeVectors
-from ivf.core.sfs.constraints import silhouetteConstraints, laplacianMatrix, gradientConstraints, laplacianConstraints,\
+from ivf.core.sfs.amg_constraints import silhouetteConstraints, laplacianMatrix, gradientConstraints, laplacianConstraints,\
     brightnessConstraints
 from ivf.core.shader.lambert import diffuse
 from ivf.core.sfs.reflectance_estimation import LambertReflectanceEstimation
 from ivf.core.solver.amg_solver import gauss_seidel_iter, sor_iter
 from ivf.util.timer import timing_func
 from ivf.cv.normal import normalizeImage
+from ivf.core.sfs import image_constraints
 
 
 class Wu08SFS(ShapeFromShading):
@@ -120,10 +121,13 @@ class Wu08SFS(ShapeFromShading):
 
         A_8U = self._A_8U
 
-        solver_iter = image_solver.solveIterator([self._laplacianConstraint(),
-                                                  self._brightnessConstraint(L, I_32F),
-                                                  self._silhouetteConstraint(N0_32F, A_8U)],
-                                                 [self._postFunc()])
+        constraints = []
+        constraints.append(image_constraints.laplacianConstraints(w_c=1.0))
+        constraints.append(image_constraints.brightnessConstraints(L, I_32F, w_c=0.5))
+        constraints.append(image_constraints.silhouetteConstraints(A_8U, w_c=0.5))
+
+        solver_iter = image_solver.solveIterator(constraints,
+                                                 [image_constraints.postNormalize(th=0.0)])
         N = image_solver.solveMG(N, solver_iter, iterations=3)
 
         self._N_32F = N.reshape(h, w, 3)

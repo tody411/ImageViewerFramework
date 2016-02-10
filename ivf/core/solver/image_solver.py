@@ -11,15 +11,9 @@ import cv2
 from ivf.util.timer import timing_func
 
 
-
 def laplacian(image):
-    #image_L = imageLaplacianPython(image)
     image_L = laplacianCV(image)
     return image_L
-
-
-def laplacianPython(image):
-    return (image[0:-2, 1:-1, :] + image[2:, 1:-1, :] + image[1:-1, 0:-2, :] + image[1:-1, 2:, :]) / 4.0 - image[1:-1, 1:-1, :]
 
 
 def laplacianCV(image):
