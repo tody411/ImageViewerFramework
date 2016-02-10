@@ -12,13 +12,14 @@ from PyQt4.QtCore import *
 
 from ivf.ui.tool.base_tool import BaseTool
 from ivf.scene.normal_constraint import NormalConstraintSet, NormalConstraint
-from ivf.np.norm import normVectors
+from ivf.np.norm import normVectors, normalizeVector
 from ivf.core.sfs.amg_constraints import normalConstraints, laplacianMatrix, silhouetteConstraints
 from ivf.core.solver import amg_solver, image_solver
 from ivf.cv.normal import normalizeImage, normalToColor
-from ivf.cv.image import alpha, to8U
+from ivf.cv.image import alpha, to8U, rgb, to32F, luminance
 from ivf.core.sfs import image_constraints
 from ivf.core.sfs.image_constraints import postNormalize
+from ivf.core.sfs.pr_sfs import Wu08SFS
 
 
 class NormalConstraintTool(BaseTool):
@@ -27,9 +28,11 @@ class NormalConstraintTool(BaseTool):
         super(NormalConstraintTool, self).__init__()
         self._normal_constraints = NormalConstraintSet()
         self._p_old = None
+        self._n_old = None
         self._selected_constraint = None
         self._normal_radius = 40.0
         self._image = None
+        self._N_32F = None
 
     def setNormalConstraints(self, normal_constraints):
         self._normal_constraints = normal_constraints
@@ -40,6 +43,7 @@ class NormalConstraintTool(BaseTool):
 
     def setImage(self, image):
         self._image = image
+        self._interpolateNormal()
         self._view.render(image)
 
     def mousePressEvent(self, e):
@@ -55,6 +59,7 @@ class NormalConstraintTool(BaseTool):
         print "p: ", self._selected_constraint.position()
         print "n: ", self._selected_constraint.normal()
         self._selected_constraint = None
+        self._interpolateNormal()
 
     def mouseMoveEvent(self, e):
         p = self._mousePosition(e)
@@ -64,10 +69,12 @@ class NormalConstraintTool(BaseTool):
             if self._selected_constraint is None:
                 return
             p_c = self._selected_constraint.position()
+            N_c = self._n_old
             dP = p - p_c
 
-            Nx = dP[0] / self._normal_radius
-            Ny = -dP[1] / self._normal_radius
+            Nx, Ny = N_c[0], N_c[1]
+            Nx += dP[0] / self._normal_radius
+            Ny += -dP[1] / self._normal_radius
             r = np.linalg.norm(np.array([Nx, Ny]))
             Nz = np.sqrt(max(0.001, 1.0 - r * r))
             N = np.array([Nx, Ny, Nz])
@@ -81,7 +88,21 @@ class NormalConstraintTool(BaseTool):
             self._view.render(self._image)
 
         if e.key() == Qt.Key_1:
+            if self._N_32F is None:
+                self._interpolateNormal()
+            A_8U = None
+            if self._image.shape[2] == 4:
+                A_8U = to8U(alpha(self._image))
+            self._view.render(normalToColor(self._N_32F, A_8U))
+
+        if e.key() == Qt.Key_2:
             self._interpolateNormal()
+            if self._N_32F is None:
+                self._interpolateNormal()
+            A_8U = None
+            if self._image.shape[2] == 4:
+                A_8U = to8U(alpha(self._image))
+            self._view.render(normalToColor(self._N_32F, A_8U))
 
         if e.key() == Qt.Key_Delete:
             self._normal_constraints.clear()
@@ -91,25 +112,19 @@ class NormalConstraintTool(BaseTool):
         pass
 
     def addConstraint(self, p):
-        self._selected_constraint = NormalConstraint(point=p)
+        n = np.array([0.0, 0.0, 1.0])
+        if self._N_32F is not None:
+            n = self._N_32F[p[1], p[0], :]
+        self._selected_constraint = NormalConstraint(point=p, normal=n)
         self._normal_constraints.addConstraint(self._selected_constraint)
-
+        self._n_old = self._selected_constraint.normal()
         self._view.update()
-
-    def _addingConstraint(self, e):
-        p = self._mousePosition(e)
-        if self._stroke_sets.selectedStrokeSet().lastStroke().empty() == 0:
-            return True
-
-        p_old = self._stroke_sets.selectedStrokeSet().lastStroke().points()[-1]
-
-        if np.linalg.norm(p - p_old) > 3:
-            return True
-
-        return False
 
     def _interpolateNormal(self):
         if self._normal_constraints.empty():
+            return
+
+        if self._image is None:
             return
 
         ps = np.int32(self._normal_constraints.positions())
@@ -125,15 +140,21 @@ class NormalConstraintTool(BaseTool):
         if self._image.shape[2] == 4:
             A_8U = to8U(alpha(self._image))
 
-        N_32F = self._interpolateNormalAMG(N0_32F, W_32F, A_8U)
-
-        self._view.render(normalToColor(N_32F, A_8U))
+        self._N_32F = self._interpolateNormalImage(N0_32F, W_32F, A_8U)
+        self._projectConstraints()
 
     def _interpolateNormalImage(self, N0_32F, W_32F, A_8U):
         constraints = []
         constraints.append(image_constraints.laplacianConstraints(w_c=0.1))
-        constraints.append(image_constraints.normalConstraints(W_32F, N0_32F, w_c=1.0))
-        constraints.append(image_constraints.silhouetteConstraints(A_8U, w_c=0.5))
+        constraints.append(image_constraints.normalConstraints(W_32F, N0_32F, w_c=3.0))
+        L = normalizeVector(np.array([-0.2, 0.3, 0.7]))
+        I_32F = luminance(to32F(rgb(self._image)))
+        I_min, I_max = np.min(I_32F), np.max(I_32F)
+
+        I_32F = (I_32F - I_min) / (I_max - I_min)
+
+        # constraints.append(image_constraints.brightnessConstraints(L, I_32F, w_c=0.5))
+        constraints.append(image_constraints.silhouetteConstraints(A_8U, w_c=0.8))
 
         solver_iter = image_solver.solveIterator(constraints,
                                                  [postNormalize(th=0.0)])
@@ -153,13 +174,20 @@ class NormalConstraintTool(BaseTool):
         A_sil, b_sil = silhouetteConstraints(A_8U)
 
         A_L = laplacianMatrix((h, w))
-        A = A_c + A_L + A_sil
-        b = b_c + b_sil
+        A = 10.0 * A_c + A_L + A_sil
+        b = 10.0 * b_c + b_sil
 
         N_32F = amg_solver.solve(A, b).reshape(h, w, 3)
         N_32F = normalizeImage(N_32F)
 
         return N_32F
+
+    def _projectConstraints(self):
+        for constraint in self._normal_constraints.constraints():
+            p = constraint.position()
+            N = self._N_32F[p[1], p[0]]
+            constraint.setNormal(N)
+        self._view.update()
 
     def _overlayFunc(self, painter):
         pen = QPen(QColor.fromRgbF(0.0, 1.0, 0.0, 0.5))
@@ -200,6 +228,7 @@ class NormalConstraintTool(BaseTool):
 
         if dP[p_min] < 5:
             self._selected_constraint = self._normal_constraints.constraint(p_min)
+            self._n_old = self._selected_constraint.normal()
             return True
 
         return False

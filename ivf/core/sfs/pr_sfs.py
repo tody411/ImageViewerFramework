@@ -29,6 +29,9 @@ class Wu08SFS(ShapeFromShading):
         super(Wu08SFS, self).__init__("Wu08", L, C_32F, A_8U)
         self._N0_32F = None
 
+    def setInitialNormal(self, N0_32F):
+        self._N0_32F = N0_32F
+
     def _runImp(self):
         if self._N0_32F is None:
             self._computeInitialNormal()
@@ -58,48 +61,6 @@ class Wu08SFS(ShapeFromShading):
         N_32F = N.reshape(h, w, 3)
         self._N0_32F = N_32F
 
-    def _laplacianConstraint(self, w_c=0.5):
-        def func(N):
-            N_smooth = image_solver.laplacian(N) + N
-            N_smooth = computeNz(N_smooth.reshape(-1, 3)).reshape(N.shape)
-            return w_c, N_smooth
-        return func
-
-    def _brightnessConstraint(self, L, I_32F, w_c=0.1):
-        I_level = image_solver.LevelImage(I_32F)
-
-        def func(N):
-            I_32F_level = I_level.level(N)
-            h, w = N.shape[:2]
-            NL = np.dot(N.reshape(-1, 3), L)
-            NL = np.clip(NL, 0.0, 1.0)
-            dI = I_32F_level.reshape(h*w) - NL
-            dI = dI.reshape(h, w)
-            N_I = np.zeros_like(N)
-            for i in range(3):
-                N_I[:, :, i] = N[:, :, i] + dI[:, :] * L[i]
-            return w_c, N_I
-        return func
-
-    def _silhouetteConstraint(self, N0_32F, A_8U, w_c=0.5):
-        N0_level = image_solver.LevelImage(N0_32F)
-        A0_level = image_solver.LevelImage(A_8U)
-
-        def func(N):
-            A_8U_level = A0_level.level(N)
-            N0_32F_level = N0_level.level(N)
-
-            N_sil = np.array(N)
-            N_sil[A_8U_level == 0, :] = N0_32F_level[A_8U_level == 0, :]
-
-            return w_c, N_sil
-        return func
-
-    def _postFunc(self):
-        def func(N):
-            N = normalizeImage(N, th=0.0)
-            return N
-        return func
 
     @timing_func
     def _optimize(self):
@@ -123,7 +84,7 @@ class Wu08SFS(ShapeFromShading):
 
         constraints = []
         constraints.append(image_constraints.laplacianConstraints(w_c=1.0))
-        constraints.append(image_constraints.brightnessConstraints(L, I_32F, w_c=0.5))
+        constraints.append(image_constraints.brightnessConstraints(L, I_32F, w_c=1.0))
         constraints.append(image_constraints.silhouetteConstraints(A_8U, w_c=0.5))
 
         solver_iter = image_solver.solveIterator(constraints,

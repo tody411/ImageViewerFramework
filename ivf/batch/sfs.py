@@ -9,9 +9,9 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 
-from ivf.batch.batch import DatasetBatch
-from ivf.io_util.image import loadNormal
-from ivf.cv.image import to32F, setAlpha, trim, gray2rgb, luminance
+from ivf.batch.batch import DatasetBatch, CharacterBatch
+from ivf.io_util.image import loadNormal, loadRGBA
+from ivf.cv.image import to32F, setAlpha, trim, gray2rgb, luminance, alpha, rgb
 from ivf.np.norm import normalizeVector
 from ivf.core.sfs.pr_sfs import Wu08SFS
 from ivf.core.shader.lambert import lambertShading, diffuse, LambertShader
@@ -39,7 +39,14 @@ class NormalInfoBatch(DatasetBatch):
         A_8U = trim(A_8U, A_8U)
 
         L = normalizeVector(np.array([0.5, -0.2, 0.7]))
-        I0_32F = diffuse(N0_32F, L)
+        C0_32F = ToonShader().diffuseShading(L, N0_32F)
+        I0_32F = luminance(C0_32F)
+
+        I_min, I_max = np.min(I0_32F), np.max(I0_32F)
+        I_scale = (I0_32F - I_min) / (I_max - I_min)
+        I_L = cv2.Laplacian(cv2.GaussianBlur(I_scale, (0, 0), 31.0), cv2.CV_32F, ksize=1)
+
+        I_L_avg = np.average(np.abs(I_L))
 
         Ix = cv2.Sobel(I0_32F, cv2.CV_64F, 1, 0, ksize=1)
         Ix = cv2.GaussianBlur(Ix, (0, 0), 3.0)
@@ -56,7 +63,7 @@ class NormalInfoBatch(DatasetBatch):
         fig.suptitle(self.name(), fontsize=font_size)
 
         num_rows = 2
-        num_cols = 4
+        num_cols = 5
         plot_grid = SubplotGrid(num_rows, num_cols)
 
         Nx = cv2.Sobel(N0_32F[:, :, 0], cv2.CV_64F, 1, 0, ksize=1)
@@ -67,11 +74,24 @@ class NormalInfoBatch(DatasetBatch):
         Ny = cv2.GaussianBlur(Ny, (0, 0), 3.0)
         Nyy = -cv2.Sobel(Ny, cv2.CV_64F, 0, 1, ksize=1)
         Nyy = cv2.GaussianBlur(Nyy, (0, 0), 5.0)
+        Nz_L = cv2.Laplacian(cv2.GaussianBlur(N0_32F[:, :, 2], (0, 0), 5.0), cv2.CV_32F, ksize=5)
+
+        Nz_L_avg = np.average(np.abs(Nz_L))
+
+        Nz_L *= 1.0 / Nz_L_avg
+
+        I_L *= 1.0 / I_L_avg
+
+        print I_L_avg, Nz_L_avg
+
+        Nz_L = np.clip(Nz_L, -5.0, 5.0)
+        I_L = np.clip(I_L, -5.0, 5.0)
 
         plot_grid.showColorMap(N0_32F[:, :, 0], r'$N_{x}$', v_min=-0.01, v_max=0.01)
         plot_grid.showColorMap(N0_32F[:, :, 1], r'$N_{y}$', v_min=-0.01, v_max=0.01)
         plot_grid.showColorMap(Nx, r'$N_{xx}$', v_min=-0.01, v_max=0.01)
         plot_grid.showColorMap(Ny, r'$N_{yy}$', v_min=-0.01, v_max=0.01)
+        plot_grid.showColorMap(Nz_L, r'$Nz_L$')
         #plot_grid.showColorMap(Nx + Ny, r'$N_{xx} + N_{yy}$', v_min=-0.01, v_max=0.01)
 
 #         Ixx[Ixx>0] = 1.0
@@ -82,13 +102,14 @@ class NormalInfoBatch(DatasetBatch):
         plot_grid.showColorMap(-Iy, r'$I_{y}$', v_min=-0.001, v_max=0.001)
         plot_grid.showColorMap(-Ixx, r'$I_{xx}$', v_min=-0.001, v_max=0.001)
         plot_grid.showColorMap(-Iyy, r'$I_{yy}$', v_min=-0.001, v_max=0.001)
+        plot_grid.showColorMap(I_L, r'$I_L$')
         #plot_grid.showColorMap(-Ixx - Iyy, r'$I_{xx} + I_{yy}$', v_min=-0.01, v_max=0.01)
         #plot_grid.showColorMap(Iy, r'$I_{y}$')
 
         showMaximize()
 
 
-class SFSBatch(DatasetBatch):
+class SFSBatch(DatasetBatch, CharacterBatch):
     def __init__(self, name="Shape From Shading", dataset_name="3dmodel"):
         super(SFSBatch, self).__init__(name, dataset_name)
 
@@ -153,5 +174,46 @@ class SFSBatch(DatasetBatch):
 
         showMaximize()
 
+    def _runCharacterImp(self):
+        if self._character_name != "KenjiMiku":
+            return
+
+        for layer_file in self.layerFiles():
+            self._runLayer(layer_file)
+
+    def _runLayer(self, layer_file):
+        C0_8U = loadRGBA(layer_file)
+
+        if C0_8U is None:
+            return
+
+        A_8U = alpha(C0_8U)
+
+        if A_8U is None:
+            return
+
+        C0_32F = to32F(rgb(C0_8U))
+        
+        
+
+        L = normalizeVector(np.array([-0.2, 0.3, 0.7]))
+        sfs_method = Wu08SFS(L, C0_32F, A_8U)
+        sfs_method.run()
+        N_32F = sfs_method.normal()
+
+        fig, axes = plt.subplots(figsize=(11, 5))
+        font_size = 15
+        fig.subplots_adjust(left=0.05, right=0.95, top=0.9, hspace=0.12, wspace=0.05)
+        fig.suptitle(self.name(), fontsize=font_size)
+
+        num_rows = 1
+        num_cols = 2
+        plot_grid = SubplotGrid(num_rows, num_cols)
+
+        plot_grid.showImage(C0_8U, r'Shading: $C$')
+        plot_grid.showImage(normalToColor(N_32F, A_8U), r'Estimated Normal: $N$')
+
+        showMaximize()
+
 if __name__ == '__main__':
-    SFSBatch().run()
+    SFSBatch().runCharacters()

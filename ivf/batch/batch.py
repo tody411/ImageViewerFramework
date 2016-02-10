@@ -9,7 +9,7 @@ import os
 
 from ivf.util.timer import Timer
 from ivf.io_util.dict_data import saveDict
-from ivf.datasets.datasets import datasetDir, datasetFiles, subDirectory
+from ivf.datasets.datasets import datasetDir, datasetFiles, subDirectory, datasetSubDirectories
 
 
 class BaseBatch(object):
@@ -97,4 +97,64 @@ class DatasetBatch(DirectoryBatch):
         return os.path.join(self._result_root, file_name)
 
     def _runImp(self):
+        pass
+
+
+class CharacterBatch(DirectoryBatch):
+    def __init__(self, name="", dataset_name=""):
+        target_dir = datasetDir(dataset_name)
+
+        super(CharacterBatch, self).__init__(name, target_dir)
+
+        self._character_name = ""
+        self._character_dir = ""
+
+        characters_dir = datasetDir("illustration/characters")
+        self._character_dirs = datasetSubDirectories(characters_dir)
+        print self._character_dirs
+        self._character_id = 0
+
+    def runCharacters(self):
+        for i in xrange(len(self._character_dirs)):
+            self.runCharacter()
+
+    def runCharacter(self):
+        if self._character_id >= len(self._character_dirs):
+            return
+
+        self._character_dir = self._character_dirs[self._character_id]
+
+        self._character_name = os.path.basename(self._character_dir)
+
+        timer = Timer(self._name)
+        self._runCharacterImp()
+        timer.stop()
+
+        message = self._character_name + ":  " + str(timer.secs()) + "sec \n"
+        message += "  " + self._input_info + "\n"
+        if self._output_info is not "":
+            message += "=> " + self._output_info
+        print message
+
+        self._character_id += 1
+
+    def fullLayerFile(self):
+        fulllayer_file = os.path.join(self._character_dir, "FullLayer.png")
+
+        if os.path.exists(fulllayer_file):
+            return fulllayer_file
+
+        return datasetFiles(self._character_dir)[0]
+
+    def layerFiles(self):
+        layer_files = datasetFiles(self._character_dir)
+
+        layer_files = [layer_file for layer_file in layer_files if not "FullLayer" in layer_file]
+        return layer_files
+
+    def characterResultFile(self, file_name):
+        result_dir = subDirectory(self._character_dir, self._name)
+        return os.path.join(result_dir, file_name)
+
+    def _runCharacterImp(self):
         pass

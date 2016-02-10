@@ -23,14 +23,14 @@ def laplacianCV(image):
 def pyrDown(image, image_size=None):
     if image_size is None:
         h, w = image.shape[:2]
-        image_size = h/2, w/2
+        image_size = w/2, h/2
     return cv2.resize(image, image_size)
 
 
 def pyrUp(image, image_size=None):
     if image_size is None:
         h, w = image.shape[:2]
-        image_size = h*2, w*2
+        image_size = w*2, h*2
     return cv2.resize(image, image_size)
 
 
@@ -57,7 +57,9 @@ def solveMG(image, solve_iter, iterations=10, tol=1e-4, low_level=16):
     for level in xrange(num_level-1):
         image_level = solve_iter(image_level, 2 ** (num_level - level) * iterations, tol)
         image_level = pyrUp(image_level)
-    image_level = pyrUp(image_level, image_size=image.shape[:2])
+
+    h, w = image.shape[:2]
+    image_level = pyrUp(image_level, image_size=(w, h))
     image_level = solve_iter(image_level, iterations, tol)
     return image_level
 
@@ -69,7 +71,8 @@ class LevelImage:
 
     def level(self, guide_image):
         if self._image_level.shape[0] != guide_image.shape[0]:
-            self._image_level = pyrDown(self._image, guide_image.shape[:2])
+            h, w = guide_image.shape[:2]
+            self._image_level = pyrDown(self._image, (w, h))
         return self._image_level
 
 

@@ -41,7 +41,7 @@ def datasetFileNames(dataset_dir, file_filter=".png"):
     file_names = os.listdir(dataset_dir)
     if file_filter is not None:
         file_names = [file_name for file_name in file_names if file_filter in file_name]
-    return os.listdir(dataset_dir)
+    return file_names
 
 
 ## Dataset files.
@@ -50,6 +50,14 @@ def datasetFiles(dataset_dir, file_filter=".png"):
     files = [os.path.join(dataset_dir, file_name) for file_name in file_names]
     return files
 
+
+def datasetSubDirectories(dataset_dir):
+    dir_names = os.listdir(dataset_dir)
+
+    dir_paths = [os.path.join(dataset_dir, dir_name) for dir_name in dir_names]
+    dir_paths = [dir_path for dir_path in dir_paths if os.path.isdir(dir_path)]
+
+    return dir_paths
 
 ## Sub directory.
 def subDirectory(target_dir, dir_name, make_dir=True):

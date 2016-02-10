@@ -64,7 +64,7 @@ def normalConstraints(W_32F, N0_32F, w_c=1.0):
         cons_ids = W_32F_level > 0
 
         for i in xrange(3):
-            N_new[cons_ids, i] = N0_32F_level[cons_ids, i]
+            N_new[cons_ids, i] = N0_32F_level[cons_ids, i] / W_32F_level[cons_ids]
 
         return w_c, N_new
     return func
