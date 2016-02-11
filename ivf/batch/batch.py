@@ -144,6 +144,8 @@ class CharacterBatch(DirectoryBatch):
         if os.path.exists(fulllayer_file):
             return fulllayer_file
 
+        if len(datasetFiles(self._character_dir)) == 0:
+            return None
         return datasetFiles(self._character_dir)[0]
 
     def layerFiles(self):

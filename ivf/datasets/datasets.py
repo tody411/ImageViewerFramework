@@ -37,7 +37,7 @@ def datasetDir(dataset_name):
 
 
 ## Dataset file names.
-def datasetFileNames(dataset_dir, file_filter=".png"):
+def datasetFileNames(dataset_dir, file_filter=None):
     file_names = os.listdir(dataset_dir)
     if file_filter is not None:
         file_names = [file_name for file_name in file_names if file_filter in file_name]
@@ -45,9 +45,10 @@ def datasetFileNames(dataset_dir, file_filter=".png"):
 
 
 ## Dataset files.
-def datasetFiles(dataset_dir, file_filter=".png"):
+def datasetFiles(dataset_dir, file_filter=None):
     file_names = datasetFileNames(dataset_dir, file_filter=file_filter)
     files = [os.path.join(dataset_dir, file_name) for file_name in file_names]
+    files = [file for file in files if os.path.isfile(file)]
     return files
 
 
