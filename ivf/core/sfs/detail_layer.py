@@ -7,6 +7,7 @@
 
 import cv2
 from ivf.cv.image import to8U, to32F
+from ivf.core.guided_filter.guided_filter import GuidedFilter
 
 
 def baseDetailSeparationGaussian(I_32F, sigma=5.0):
@@ -18,6 +19,8 @@ def baseDetailSeparationGaussian(I_32F, sigma=5.0):
 
 def baseDetailSeparationBilateral(I_32F, sigma_space=5.0, sigma_range=0.1):
     B = cv2.bilateralFilter(I_32F, 0, sigma_range, sigma_space)
+    #g_filter = GuidedFilter(I_32F, radius=sigma_space, epsilon=sigma_range)
+    #B = g_filter.filter(I_32F)
     D = I_32F - B
 
     return B, D

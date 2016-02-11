@@ -10,6 +10,7 @@ import os
 from ivf.util.timer import Timer
 from ivf.io_util.dict_data import saveDict
 from ivf.datasets.datasets import datasetDir, datasetFiles, subDirectory, datasetSubDirectories
+from ivf.ui.editor.parameter_editor import ParameterEditor
 
 
 class BaseBatch(object):
@@ -154,8 +155,10 @@ class CharacterBatch(DirectoryBatch):
         layer_files = [layer_file for layer_file in layer_files if not "FullLayer" in layer_file]
         return layer_files
 
-    def characterResultFile(self, file_name):
-        result_dir = subDirectory(self._character_dir, self._name)
+    def characterResultFile(self, file_name, data_name=None):
+        if data_name is None:
+            data_name = self._name
+        result_dir = subDirectory(self._character_dir, data_name)
         return os.path.join(result_dir, file_name)
 
     def _runCharacterImp(self):

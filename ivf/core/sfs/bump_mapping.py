@@ -9,6 +9,7 @@ import numpy as np
 import cv2
 
 from ivf.cv.normal import normalizeImage
+from ivf.np.norm import normVectors
 
 
 def bumpNormal(D_32F, scale=1.0, sigma=1.0):
@@ -27,5 +28,41 @@ def bumpNormal(D_32F, scale=1.0, sigma=1.0):
 
     return N_32F
 
-def bumpMapping(N_32F, D_32F):
-    pass
+
+def rotateVectors(A, N, cos_theta, sin_theta):
+    p = np.dot(A, N) * A
+    q = N - p
+    r = np.cross(N, A)
+    N_new = p + cos_theta * q + sin_theta * r
+    return N_new
+
+
+def tangentCoordinates(N_32F):
+    N = N_32F.reshape(-1, 3)
+
+    v_z = np.array([0.0, 0.0, 1.0])
+    A = np.cross(N, v_z)
+
+    sin_theta = normVectors(A)
+    cos_theta = np.dot(N, v_z)
+
+    v_x = np.array([1.0, 0.0, 0.0])
+    v_y = np.array([0.0, 1.0, 0.0])
+
+    T = np.zeros_like(N)
+    T[:, :] = np.array([1.0, 0.0, 0.0])
+    B = np.zeros_like(N)
+    B[:, :] = np.array([0.0, 1.0, 0.0])
+
+    sin_valid = sin_theta > 1e-4
+
+    T[sin_valid, :] = rotateVectors(A, T[sin_valid, :], cos_theta[sin_valid], sin_theta[sin_valid])
+    B[sin_valid, :] = rotateVectors(A, B[sin_valid, :], cos_theta[sin_valid], sin_theta[sin_valid])
+
+    return T, B
+
+
+def bumpMapping(N_32F, N_b_32):
+    N_32F[:, :, 0] += N_b_32[:, :, 0]
+    N_32F[:, :, 1] += N_b_32[:, :, 1]
+    return N_32F
