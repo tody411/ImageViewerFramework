@@ -155,10 +155,26 @@ class CharacterBatch(DirectoryBatch):
         layer_files = [layer_file for layer_file in layer_files if not "FullLayer" in layer_file]
         return layer_files
 
-    def characterResultFile(self, file_name, data_name=None):
+    def characterResultDir(self, data_name=None):
         if data_name is None:
             data_name = self._name
         result_dir = subDirectory(self._character_dir, data_name)
+        return result_dir
+
+    def cleanCharacterResultDir(self, data_name=None):
+        result_dir = self.characterResultDir(data_name)
+
+        for file_name in os.listdir(result_dir):
+            file_path = os.path.join(result_dir, file_name)
+            if os.path.exists(file_path) and os.path.isfile(file_path):
+                os.remove(file_path)
+
+            elif os.path.exists(file_path) and os.path.isdir(file_path):
+                os.removedirs(file_path)
+
+
+    def characterResultFile(self, file_name, data_name=None):
+        result_dir = self.characterResultDir(data_name)
         return os.path.join(result_dir, file_name)
 
     def _runCharacterImp(self):
