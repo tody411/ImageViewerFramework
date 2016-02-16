@@ -56,7 +56,8 @@ class ToonSFSBatch(DatasetBatch, CharacterBatch):
         saveNormal(self.resultFile(self._data_file_name, result_name="Wu08"), N_32F, A_8U)
 
     def _runCharacterImp(self):
-        if self._character_name != "MikuFuwatoro":
+        targets = ["Miku", "KenjiMiku", "SozaiMiku", "MikuFuwatoro"]
+        if not self._character_name in targets:
             return
 
         for layer_file in self.layerFiles():
