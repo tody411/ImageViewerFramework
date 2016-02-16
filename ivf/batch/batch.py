@@ -94,8 +94,14 @@ class DatasetBatch(DirectoryBatch):
 
         self._data_file_id += 1
 
-    def resultFile(self, file_name):
-        return os.path.join(self._result_root, file_name)
+    def resultDir(self, result_name=None):
+        if result_name is None:
+            result_name = self._name
+        return subDirectory(self._target_dir, "results/" + result_name)
+
+    def resultFile(self, file_name, result_name=None):
+        result_dir = self.resultDir(result_name)
+        return os.path.join(result_dir, file_name)
 
     def _runImp(self):
         pass

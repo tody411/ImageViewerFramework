@@ -108,6 +108,10 @@ class StrokeSets(Data):
         self._stroke_sets = []
         self._selected_set = None
 
+    def clear(self):
+        self._stroke_sets = []
+        self._selected_set = None
+
     def strokeSets(self):
         return self._stroke_sets
 

@@ -4,6 +4,7 @@ import lambert
 from ivf.np.norm import normalizeVector
 from ivf.core.shader.shader import Shader
 from ivf.core.shader.lambert import LambertShader
+from ivf.core.shader.half_lambert import HalfLambertShader
 
 
 class ToonShader(Shader):
@@ -15,7 +16,7 @@ class ToonShader(Shader):
         self._colors = colors
 
     def diffuseTerm(self, L, N_32F):
-        return LambertShader(ka=np.zeros(3), kd=np.zeros(3)).diffuseTerm(L, N_32F)
+        return HalfLambertShader(ka=np.zeros(3), kd=np.zeros(3)).diffuseTerm(L, N_32F)
 
     def diffuseShading(self, L, N_32F):
         I_32F = self.diffuseTerm(L, N_32F)

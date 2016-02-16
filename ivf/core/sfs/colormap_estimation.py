@@ -7,20 +7,25 @@
 
 import numpy as np
 import cv2
+from scipy.interpolate.interpolate import interp1d
+from scipy.interpolate.fitpack2 import UnivariateSpline
 
 from ivf.cv.image import luminance
 from ivf.np.norm import normVectors
+from scipy.interpolate.rbf import Rbf
+
+
 
 
 class ColorMapEstimation:
-    def __init__(self, Cs, Is=None, num_samples=500):
+    def __init__(self, Cs, Is=None, num_samples=2000):
         self._Cs = Cs
         self._I0s = np.average(Cs, axis=1)
         if Is is None:
             Is = np.array(self._I0s)
         self._Is = Is
         self._map = None
-        self._map_size = 64
+        self._map_size = 256
         self._num_samples = num_samples
 
         self._compute()
@@ -53,9 +58,10 @@ class ColorMapEstimation:
 
         hist_positive = hist > 0
 
-        C_map[hist_positive, :] *= 1.0 / hist[hist_positive]
+        for ci in xrange(3):
+            C_map[hist_positive, ci] *= 1.0 / hist[hist_positive]
 
-        I_map = np.zeros((self._map_size, 1))
+        I_map = np.zeros((self._map_size))
 
         I_min, I_max = self._Iminmax
 
@@ -79,6 +85,74 @@ class ColorMapEstimation:
         return I_ids
 
     def _compute(self):
+        self.__computeByHistogram()
+
+    def _rbf(self, Is, Cs, smooth=0.005):
+        rbf_list = []
+        for ci in xrange(3):
+            rbf_list.append(Rbf(Is, Cs[:, ci], smooth=smooth))
+
+        def f(Is_new):
+            Cs_new = np.zeros((len(Is_new), Cs.shape[1]))
+            for ci in xrange(3):
+                Cs_new[:, ci] = rbf_list[ci](Is_new)
+            return Cs_new
+        return f
+
+    def __computeByHistogram(self):
+        sample_ids = np.random.randint(len(self._Is) - 1, size=self._num_samples)
+        Is = self._Is[sample_ids]
+        I0s = self._I0s[sample_ids]
+        Cs = self._Cs[sample_ids]
+
+        I_min, I_max = np.min(Is), np.max(Is)
+        self._Iminmax = I_min, I_max
+
+        C_order = np.argsort(I0s)
+        Cs_sort = Cs[C_order]
+        Is_sort = np.sort(Is)
+
+        hist = np.zeros((self._map_size))
+        Cs_avg = np.zeros((self._map_size, Cs.shape[1]))
+
+        I_ids = self._I_ids(Is_sort)
+        Cs_avg[I_ids, :] += Cs_sort[:, :]
+        hist[I_ids] += 1.0
+        hist_positive = hist > 0
+
+        for ci in xrange(3):
+            Cs_avg[hist_positive, ci] *= 1.0 / hist[hist_positive]
+
+        self._map = np.zeros((self._map_size, Cs.shape[1]))
+
+        hist_positive = np.where(hist > 0)[0]
+
+        mi = 0
+        for hi in hist_positive:
+
+            while mi < hi:
+                self._map[mi, :] = Cs_avg[hi, :]
+                mi += 1
+
+        while mi < self._map_size:
+            self._map[mi, :] = Cs_avg[hist_positive[-1], :]
+            mi += 1
+
+        Is_new = np.arange(self._map_size)
+        M = self._rbf(Is_new, self._map, smooth=0.00005)
+
+        self._map = np.clip(M(Is_new), 0.0, 1.0)
+
+#         Is_avg = np.where(hist > 0)[0]
+#         M = []
+#
+#         for ci in xrange(3):
+#             M.append(Rbf(Is_avg, Cs_avg[hist_positive, ci], smooth=0.005))
+#
+#         for ci in xrange(3):
+#             self._map[:, ci] = M[ci](np.arange(self._map_size))
+
+    def __computeByPixelList(self):
         sample_ids = np.random.randint(len(self._Is) - 1, size=self._num_samples)
         Is = self._Is[sample_ids]
         I0s = self._I0s[sample_ids]
@@ -96,10 +170,8 @@ class ColorMapEstimation:
         for mi in xrange(self._map_size):
             Im = I_min + (I_max - I_min) * mi / (self._map_size - 1)
 
-            while Is_sort[I_i] < Im and I_i < len(Is_sort):
-                I_i += 1
-            self._map[mi, :] = Cs_sort[I_i, :]
+            while I_i < len(Is_sort) - 1 and Is_sort[I_i] < Im:
+                    I_i += 1
 
-        print Cs_sort[0], Cs_sort[-1]
-        print Is_sort[0], Is_sort[-1]
+            self._map[mi, :] = Cs_sort[I_i, :]
 

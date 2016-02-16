@@ -12,7 +12,7 @@ from skimage.segmentation import slic, mark_boundaries
 
 import cv2
 
-from ivf.core.sparse_interpolation.image_features import positionFeatures, LabFeatures
+from ivf.core.image_features.image_features import positionFeatures, LabFeatures
 from ivf.util.timer import timing_func
 from ivf.cv.image import to8U, Lab2rgb, setAlpha, alpha, to32F, rgb
 

@@ -23,7 +23,7 @@ def alphaFeatures(image):
 def foreGroundFeatures(image):
     a_features = alphaFeatures(image)
 
-    return a_features > 200
+    return a_features > 0.7 * np.max(a_features)
 
 
 def positionFeatures(image):

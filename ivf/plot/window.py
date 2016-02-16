@@ -6,6 +6,7 @@
 #  @date        2015/07/29
 
 from matplotlib import pyplot as plt
+from ivf.cv.image import trim, alpha
 
 
 class SubplotGrid:
@@ -14,12 +15,18 @@ class SubplotGrid:
         self._num_cols = num_cols
         self._plot_id = 1
 
-    def showImage(self, image, title):
+    def showImage(self, image, title, alpha_clip=True):
         plt.subplot(self._num_rows, self._num_cols, self._plot_id)
         plt.title(title)
         if len(image.shape) == 2:
             plt.gray()
-        plt.imshow(image)
+
+        show_image = image
+        if len(image.shape) == 3:
+            if image.shape[2] == 4:
+                show_image = trim(image, alpha(image))
+
+        plt.imshow(show_image)
         plt.axis('off')
         self._plot_id += 1
 

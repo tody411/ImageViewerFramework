@@ -24,7 +24,9 @@ class DepthFromNormalBatch(DatasetBatch):
         super(DepthFromNormalBatch, self).__init__(name, dataset_name)
 
     def _runImp(self):
-        normal_data = loadNormal(self._data_file)
+        # file_path = self._data_file
+        file_path = self.resultFile(self._data_file_name, result_name="Wu08")
+        normal_data = loadNormal(file_path)
 
         if normal_data is None:
             return
@@ -67,7 +69,9 @@ class DepthFromNormalBatch(DatasetBatch):
 
         plt.colorbar()
 
-        plt.savefig(self.resultFile(self._data_file_name))
+        #out_file_path = self.resultFile(self._data_file_name)
+        out_file_path = self.resultFile(self._data_file_name, result_name="Wu08Depth")
+        plt.savefig(out_file_path)
 
 
 

@@ -1,7 +1,7 @@
 import numpy as np
 
 from ivf.np.norm import normalizeVector
-from ivf.core.shader.shader import Shader
+from ivf.core.shader.shader import Shader, LdotN
 
 
 class LambertShader(Shader):
@@ -12,12 +12,8 @@ class LambertShader(Shader):
 
     def diffuseTerm(self, L, N_32F):
         L = normalizeVector(L)
-        h, w, cs = N_32F.shape
-        N_flat = N_32F.reshape((-1, 3))
-
-        I_flat = np.dot(N_flat, L)
-        I_32F = I_flat.reshape((h, w))
-        I_32F = np.clip(I_32F, 0.0, 1.0)
+        LdN = LdotN(L, N_32F)
+        I_32F = np.clip(LdN, 0.0, 1.0)
         return np.float32(I_32F)
 
     def diffuseShading(self, L, N_32F):

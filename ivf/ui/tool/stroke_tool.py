@@ -26,6 +26,10 @@ class StrokeTool(BaseTool):
         self._p_old = None
         self._brush_size = 20
 
+    def clearStrokeSets(self):
+        self._stroke_sets.clear()
+        self._selectStrokeSet("1", color=(1.0, 0.0, 0.0, 0.4))
+
     def setStrokeSets(self, stroke_sets):
         self._stroke_sets = stroke_sets
         self._selectStrokeSet("1", color=(1.0, 0.0, 0.0, 0.4))

@@ -10,7 +10,7 @@ import cv2
 import matplotlib.pyplot as plt
 
 from ivf.batch.batch import DatasetBatch, CharacterBatch
-from ivf.io_util.image import loadNormal, loadRGBA
+from ivf.io_util.image import loadNormal, loadRGBA, saveNormal
 from ivf.cv.image import to32F, setAlpha, trim, gray2rgb, luminance, alpha, rgb
 from ivf.np.norm import normalizeVector
 from ivf.core.sfs.pr_sfs import Wu08SFS
@@ -110,12 +110,10 @@ class NormalInfoBatch(DatasetBatch):
 
 
 class SFSBatch(DatasetBatch, CharacterBatch):
-    def __init__(self, name="Shape From Shading", dataset_name="3dmodel"):
+    def __init__(self, name="ShapeFromShading", dataset_name="3dmodel"):
         super(SFSBatch, self).__init__(name, dataset_name)
 
     def _runImp(self):
-        if self._data_name != "Man":
-            return
         normal_data = loadNormal(self._data_file)
 
         if normal_data is None:
@@ -130,12 +128,14 @@ class SFSBatch(DatasetBatch, CharacterBatch):
 
         L = normalizeVector(np.array([-0.2, 0.3, 0.7]))
 
-        C0_32F = ToonShader().diffuseShading(L, N0_32F)
-        # C0_32F = LambertShader().diffuseShading(L, N0_32F)
+        # C0_32F = ToonShader().diffuseShading(L, N0_32F)
+        C0_32F = LambertShader().diffuseShading(L, N0_32F)
 
         sfs_method = Wu08SFS(L, C0_32F, A_8U)
         sfs_method.run()
         N_32F = sfs_method.normal()
+
+        saveNormal(self.resultFile(self._data_file_name, result_name="Wu08"), N_32F, A_8U)
 
         C_error = sfs_method.shadingError()
         I_32F = sfs_method.brightness()
@@ -193,8 +193,8 @@ class SFSBatch(DatasetBatch, CharacterBatch):
             return
 
         C0_32F = to32F(rgb(C0_8U))
-        
-        
+
+
 
         L = normalizeVector(np.array([-0.2, 0.3, 0.7]))
         sfs_method = Wu08SFS(L, C0_32F, A_8U)
@@ -216,4 +216,4 @@ class SFSBatch(DatasetBatch, CharacterBatch):
         showMaximize()
 
 if __name__ == '__main__':
-    SFSBatch().runCharacters()
+    SFSBatch().run()
