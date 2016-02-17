@@ -18,7 +18,7 @@ class ToonSFS(ShapeFromShading):
     def __init__(self, L=None, C_32F=None, A_8U=None):
         super(ToonSFS, self).__init__("ToonSFS", L, C_32F, A_8U)
         self._N0_32F = None
-        self._iterations = 100
+        self._iterations = 10
 
     def setInitialNormal(self, N0_32F):
         self._N0_32F = N0_32F

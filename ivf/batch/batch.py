@@ -6,11 +6,13 @@
 #  @date        2016/02/05
 
 import os
+import shutil
 
 from ivf.util.timer import Timer
 from ivf.io_util.dict_data import saveDict
 from ivf.datasets.datasets import datasetDir, datasetFiles, subDirectory, datasetSubDirectories
 from ivf.ui.editor.parameter_editor import ParameterEditor
+
 
 
 class BaseBatch(object):
@@ -161,14 +163,17 @@ class CharacterBatch(DirectoryBatch):
         layer_files = [layer_file for layer_file in layer_files if not "FullLayer" in layer_file]
         return layer_files
 
-    def characterResultDir(self, data_name=None):
+    def characterResultDir(self, data_name=None, layer_name=None):
         if data_name is None:
             data_name = self._name
         result_dir = subDirectory(self._character_dir, data_name)
+
+        if layer_name is not None:
+            result_dir = subDirectory(result_dir, layer_name)
         return result_dir
 
-    def cleanCharacterResultDir(self, data_name=None):
-        result_dir = self.characterResultDir(data_name)
+    def cleanCharacterResultDir(self, data_name=None, layer_name=None):
+        result_dir = self.characterResultDir(data_name, layer_name)
 
         for file_name in os.listdir(result_dir):
             file_path = os.path.join(result_dir, file_name)
@@ -176,11 +181,10 @@ class CharacterBatch(DirectoryBatch):
                 os.remove(file_path)
 
             elif os.path.exists(file_path) and os.path.isdir(file_path):
-                os.removedirs(file_path)
+                shutil.rmtree(file_path)
 
-
-    def characterResultFile(self, file_name, data_name=None):
-        result_dir = self.characterResultDir(data_name)
+    def characterResultFile(self, file_name, data_name=None, layer_name=None):
+        result_dir = self.characterResultDir(data_name, layer_name)
         return os.path.join(result_dir, file_name)
 
     def _runCharacterImp(self):

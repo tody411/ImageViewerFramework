@@ -55,7 +55,9 @@ def solveMG(image, solve_iter, iterations=10, tol=1e-4, low_level=16):
         num_level += 1
 
     for level in xrange(num_level-1):
-        image_level = solve_iter(image_level, 2 ** (num_level - level) * iterations, tol)
+        # level_iterations = 2 ** (num_level - level) * iterations
+        level_iterations = iterations
+        image_level = solve_iter(image_level, level_iterations, tol)
         image_level = pyrUp(image_level)
 
     h, w = image.shape[:2]
