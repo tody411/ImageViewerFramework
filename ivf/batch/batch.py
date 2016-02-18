@@ -14,7 +14,6 @@ from ivf.datasets.datasets import datasetDir, datasetFiles, subDirectory, datase
 from ivf.ui.editor.parameter_editor import ParameterEditor
 
 
-
 class BaseBatch(object):
     def __init__(self, name=""):
         super(BaseBatch, self).__init__()

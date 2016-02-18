@@ -85,9 +85,10 @@ class ColorMapEstimation:
         return I_ids
 
     def _compute(self):
-        self.__computeByHistogram()
+        self.__computeByPixelList()
+        # self.__computeByHistogram()
 
-    def _rbf(self, Is, Cs, smooth=0.005):
+    def _rbf(self, Is, Cs, smooth=0.00005):
         rbf_list = []
         for ci in xrange(3):
             rbf_list.append(Rbf(Is, Cs[:, ci], smooth=smooth))
@@ -175,3 +176,5 @@ class ColorMapEstimation:
 
             self._map[mi, :] = Cs_sort[I_i, :]
 
+        self._map = cv2.bilateralFilter(
+                                        np.float32(self._map.reshape(1, self._map_size, Cs.shape[1])), 0, 0.1, 2).reshape(self._map_size, Cs.shape[1])

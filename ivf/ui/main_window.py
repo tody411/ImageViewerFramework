@@ -34,6 +34,7 @@ from ivf.cmds.sparse_interpolation.bilateral_normal_smoothing import BilateralNo
 from ivf.cmds.sparse_interpolation.sparse_sampling import SparseSamplingCommand
 from ivf.cmds.sfs.depth_to_normal import DepthToNormalCommand
 from ivf.ui.model_view import ModelView
+from ivf.cmds.color_map import ColorMapCommand
 
 
 ## Main Window
@@ -104,6 +105,7 @@ class MainWindow(QMainWindow):
         tool_menu = menu_bar.addMenu("&Tool")
         self._addCommand(GraphCutCommand(self._scene, self._image_view, parent=tool_menu), tool_menu)
         self._addCommand(StrokeToolCommand(self._scene, self._image_view, parent=tool_menu), tool_menu)
+        self._addCommand(ColorMapCommand(self._scene, self._image_view, parent=tool_menu), tool_menu)
 
         overlay_menu = menu_bar.addMenu("&Overlay")
         self._addCommand(SceneInfoOverlayCommand(self._scene, self._image_view, parent=overlay_menu), overlay_menu)
