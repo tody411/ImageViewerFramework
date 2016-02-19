@@ -36,13 +36,13 @@ def colorMapFigure():
     L = normalizeVector(np.array([-0.2, 0.3, 0.7]))
     N_32F, A_32F = normalSphere(h=512, w=512)
 
-    fig, axes = plt.subplots(figsize=(10, 6))
+    fig, axes = plt.subplots(figsize=(6, 4))
     font_size = 15
     fig.subplots_adjust(left=0.02, right=0.98, top=0.98, bottom=0.02, hspace=0.1, wspace=0.1)
     fig.suptitle("", fontsize=font_size)
 
-    num_rows = 6
-    num_cols = 10
+    num_rows = 4
+    num_cols = 6
     plot_grid = SubplotGrid(num_rows, num_cols)
 
     for colormap_file in colorMapFiles():
@@ -55,4 +55,5 @@ def colorMapFigure():
 
 
 if __name__ == '__main__':
+    colorMapRename()
     colorMapFigure()

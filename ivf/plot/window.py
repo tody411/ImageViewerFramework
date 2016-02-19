@@ -22,9 +22,10 @@ class SubplotGrid:
             plt.gray()
 
         show_image = image
-        if len(image.shape) == 3:
-            if image.shape[2] == 4:
-                show_image = trim(image, alpha(image))
+        if alpha_clip:
+            if len(image.shape) == 3:
+                if image.shape[2] == 4:
+                    show_image = trim(image, alpha(image))
 
         plt.imshow(show_image)
         plt.axis('off')
