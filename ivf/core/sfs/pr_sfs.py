@@ -83,13 +83,13 @@ class Wu08SFS(ShapeFromShading):
         A_8U = self._A_8U
 
         constraints = []
-        constraints.append(image_constraints.laplacianConstraints(w_c=1.0))
+        constraints.append(image_constraints.laplacianConstraints(w_c=0.5))
         constraints.append(image_constraints.brightnessConstraints(L, I_32F, w_c=1.0))
         constraints.append(image_constraints.silhouetteConstraints(A_8U, w_c=0.5))
 
         solver_iter = image_solver.solveIterator(constraints,
                                                  [image_constraints.postNormalize(th=0.0)])
-        N = image_solver.solveMG(N, solver_iter, iterations=3)
+        N = image_solver.solveMG(np.float64(N), solver_iter, iterations=20)
 
         self._N_32F = N.reshape(h, w, 3)
 

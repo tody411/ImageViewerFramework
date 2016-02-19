@@ -222,4 +222,4 @@ class ToonSFSBatch(DatasetBatch, CharacterBatch):
 
 
 if __name__ == '__main__':
-    ToonSFSBatch().runCharacters()
+    ToonSFSBatch().run()

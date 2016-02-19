@@ -15,9 +15,9 @@ class SubplotGrid:
         self._num_cols = num_cols
         self._plot_id = 1
 
-    def showImage(self, image, title, alpha_clip=True):
+    def showImage(self, image, title, alpha_clip=True, font_size=15):
         plt.subplot(self._num_rows, self._num_cols, self._plot_id)
-        plt.title(title)
+        plt.title(title, fontsize=font_size)
         if len(image.shape) == 2:
             plt.gray()
 
@@ -38,6 +38,9 @@ class SubplotGrid:
         plt.axis('off')
         plt.colorbar()
         self._plot_id += 1
+
+    def setPlot(self, row_id, col_id):
+        self._plot_id = self._num_cols * (row_id-1) + col_id
 
 
 def createFigure(title, font_size=15):

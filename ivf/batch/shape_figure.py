@@ -16,7 +16,7 @@ from ivf.plot.window import SubplotGrid
 from ivf.datasets.colormap import colorMapFile, loadColorMap
 from ivf.core.shader.toon import ColorMapShader
 from ivf.np.norm import normalizeVector
-from ivf.cv.image import setAlpha, trim
+from ivf.cv.image import setAlpha, trim, to32F
 
 
 def stylizedShadingFigure():
@@ -48,7 +48,7 @@ def stylizedShadingFigure():
         C_32F = ColorMapShader(M_32F).diffuseShading(L, N_32F)
 #         C_32F = trim(C_32F, A_8U)
 #         A_8U = trim(A_8U, A_8U)
-        C_32F = setAlpha(C_32F, A_8U)
+        C_32F = setAlpha(C_32F, to32F(A_8U))
 
 #         h, w = C_32F.shape[:2]
 #

@@ -48,7 +48,7 @@ def colorMapFigure():
     for colormap_file in colorMapFiles():
         M_32F = loadColorMap(colormap_file)
         C_32F = ColorMapShader(M_32F).diffuseShading(L, N_32F)
-        plot_grid.showImage(setAlpha(C_32F, to8U(A_32F)), "")
+        plot_grid.showImage(setAlpha(C_32F, A_32F), "")
 
     file_path = os.path.join(colorMapResultsDir(), "ColorMapMaterials.png")
     fig.savefig(file_path, transparent=True)

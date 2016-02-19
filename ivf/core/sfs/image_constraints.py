@@ -43,6 +43,26 @@ def brightnessConstraints(L, I_32F, w_c=1.0):
     return func
 
 
+def brightnessConstraintsWithWeight(W_32F, L, I_32F, w_c=1.0):
+    I_level = image_solver.LevelImage(I_32F)
+    W_level = image_solver.LevelImage(W_32F)
+
+    def func(N_32F):
+        I_32F_level = I_level.level(N_32F)
+        W_32F_level = W_level.level(N_32F)
+        h, w = N_32F.shape[:2]
+        NL = np.dot(N_32F.reshape(-1, 3), L)
+        NL = np.clip(NL, 0.0, 1.0)
+        dI = I_32F_level.reshape(h*w) - NL
+        dI = W_32F_level.reshape(h*w) * dI
+        dI = dI.reshape(h, w)
+        N_I = np.zeros_like(N_32F)
+
+        for i in range(3):
+            N_I[:, :, i] = N_32F[:, :, i] +  dI[:, :] * L[i]
+        return w_c, N_I
+    return func
+
 def silhouetteConstraints(A_8U, w_c=1.0, th_alpha=0.2):
     h, w = A_8U.shape
     N0_32F = silhouetteNormal(A_8U)

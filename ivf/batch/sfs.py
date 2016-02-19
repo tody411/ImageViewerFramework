@@ -194,8 +194,6 @@ class SFSBatch(DatasetBatch, CharacterBatch):
 
         C0_32F = to32F(rgb(C0_8U))
 
-
-
         L = normalizeVector(np.array([-0.2, 0.3, 0.7]))
         sfs_method = Wu08SFS(L, C0_32F, A_8U)
         sfs_method.run()

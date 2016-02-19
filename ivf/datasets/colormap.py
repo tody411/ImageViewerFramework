@@ -7,6 +7,7 @@
 import os
 from ivf.datasets.datasets import datasetRootDir, datasetFiles, subDirectory
 from ivf.io_util.image import loadRGB
+from ivf.cv.image import to32F
 
 
 def colorMapDatasetDir():
@@ -22,7 +23,7 @@ def colorMapFile(cmap_id):
 
 
 def loadColorMap(file_path):
-    M_32F = loadRGB(file_path)
+    M_32F = to32F(loadRGB(file_path))
     return M_32F[0, :, :]
 
 

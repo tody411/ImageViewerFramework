@@ -26,8 +26,8 @@ def lightEstimation(I_32F, N_32F, A_8U=None):
     I_avg = np.average(I)
     N_avg = np.average(N, axis=0)
 
-    I = I - 0.8 * I_avg
-    N = N - 0.8 * N_avg
+    #I = I - 0.8 * I_avg
+    #N = N - 0.8 * N_avg
 
     A = np.dot(N.T, N)
     b = np.dot(N.T, I)
