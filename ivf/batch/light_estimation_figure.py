@@ -56,6 +56,20 @@ def computeErrorTables(Lg=normalizeVector(np.array([-0.2, 0.3, 0.6]))):
 
             L_errors[si, mi] = angleError(Lg, L)
 
+    file_path = shapeResultFile("LightEstimation", "LightEstimationError", file_ext=".npy")
+    np.save(file_path, L_errors)
+
+
+def errorInfo():
+    colormap_files = colorMapFiles()
+    shape_names = shapeNames()
+
+    num_materials = len(colormap_files)
+    num_shapes = len(shape_names)
+
+    file_path = shapeResultFile("LightEstimation", "LightEstimationError", file_ext=".npy")
+    L_errors = np.load(file_path)
+
     shape_errors = np.zeros(num_shapes)
     for si, shape_name in enumerate(shape_names):
         shape_errors[si] = np.average(L_errors[si, :])
@@ -148,4 +162,4 @@ def lightEstimationFigure():
 
 
 if __name__ == '__main__':
-    lightEstimationFigure()
+    errorInfo()

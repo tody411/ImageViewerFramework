@@ -7,14 +7,14 @@
 
 import numpy as np
 import cv2
+import matplotlib.pyplot as plt
+
 from scipy.interpolate.interpolate import interp1d
 from scipy.interpolate.fitpack2 import UnivariateSpline
 
 from ivf.cv.image import luminance
 from ivf.np.norm import normVectors
 from scipy.interpolate.rbf import Rbf
-
-
 
 
 class ColorMapEstimation:
@@ -48,7 +48,12 @@ class ColorMapEstimation:
         return Cs
 
     def illumination(self, Cs):
+        return self._illuminationFromColorDifference(Cs)
+        # return self._illuminationFromIrange(Cs)
+
+    def _illuminationFromColorDifference(self, Cs):
         I0s = np.average(Cs, axis=1)
+
         I0_ids = self._I_ids(I0s)
 
         C_map = np.zeros((self._map_size, Cs.shape[1]))
@@ -65,11 +70,55 @@ class ColorMapEstimation:
 
         I_min, I_max = self._Iminmax
 
+        Ims = np.linspace(I_min, I_max, num=self._map_size)
+
+        for ci in xrange(3):
+            C_map[:, ci] = Rbf(Ims[hist_positive], C_map[hist_positive, ci], smooth=0.0005)(Ims)
+
+        sigma = 0.02
         for mi in xrange(self._map_size):
             c = C_map[mi]
-            dc_i = np.argmin(normVectors(self._map[:, :] - c))
+            dc = normVectors(self._map - c)
 
-            I_map[mi] = I_min + (I_max - I_min) * dc_i / float(self._map_size - 1)
+            dc_i = np.argmin(dc)
+            wc = np.exp(- (dc ** 2) / (sigma ** 2))
+
+            I = np.dot(wc, Ims) / np.sum(wc)
+
+            #I_map[mi] = I_min + (I_max - I_min) * dc_i / float(self._map_size - 1)
+            I_map[mi] = I
+
+        Im_max = 0.0
+        for mi in xrange(self._map_size):
+            Im_max = max(I_map[mi], Im_max)
+            I_map[mi] = Im_max
+
+        #I_map = Rbf(Ims, I_map, smooth=0.0005)(Ims)
+
+#         I_map[np.max(I0_ids):] = I_max
+
+        return I_map[I0_ids]
+
+    def _illuminationFromIrange(self, Cs):
+        I0s = np.average(Cs, axis=1)
+        print "I0 min max", np.min(I0s), np.max(I0s)
+
+        I0_ids = self._I_ids(I0s, self._Im_minmax)
+
+        hist = np.zeros((self._map_size))
+        hist[I0_ids] += 1.0
+
+        hist /= np.max(hist)
+
+#         plt.plot(np.arange(self._map_size), hist)
+#         plt.show()
+
+        I_map = 0.5 * (self._I_map_min + self._I_map_max)
+        #I_map = self._I_map_max
+        I_min, I_max = self._Iminmax
+
+        I_map[np.min(I0_ids)] = I_min
+        I_map[np.max(I0_ids)] = I_max
 
         return I_map[I0_ids]
 
@@ -84,9 +133,45 @@ class ColorMapEstimation:
         I_ids = np.clip(I_ids, 0, self._map_size - 1)
         return I_ids
 
+    def _computeIrange(self):
+        self._I_map_min = np.zeros((self._map_size))
+        self._I_map_max = np.zeros((self._map_size))
+
+        hist = np.zeros((self._map_size))
+
+        Is = np.average(self._map, axis=1)
+
+        print "Im min max", np.min(Is), np.max(Is)
+
+        self._Im_minmax = np.min(Is), np.max(Is)
+
+        I_ids = self._I_ids(Is)
+
+        hist[I_ids] += 1.0
+
+        hist_all = np.sum(hist)
+
+        hist_sum = 0.0
+
+        I_min, I_max = self._Iminmax
+
+        for mi in xrange(self._map_size):
+            t = hist_sum / hist_all
+            self._I_map_min[mi] = I_min + t * (I_max - I_min)
+            hist_sum += hist[mi]
+
+            t = (hist_sum - 1.0) / hist_all
+            self._I_map_max[mi] = I_min + t * (I_max - I_min)
+
+
+#         Ims = np.linspace(I_min, I_max, num=self._map_size)
+#         self._I_map_max = Rbf(Ims, self._I_map_max, smooth=5)(Ims)
+#         self._I_map_min = Rbf(Ims, self._I_map_min, smooth=5)(Ims)
+
     def _compute(self):
-        self.__computeByPixelList()
-        # self.__computeByHistogram()
+        # self.__computeByPixelList()
+        self.__computeByHistogram()
+        self._computeIrange()
 
     def _rbf(self, Is, Cs, smooth=0.00005):
         rbf_list = []
@@ -141,8 +226,8 @@ class ColorMapEstimation:
 
         Is_new = np.arange(self._map_size)
         M = self._rbf(Is_new, self._map, smooth=0.00005)
-
-        self._map = np.clip(M(Is_new), 0.0, 1.0)
+        #self._map = M(Is_new)
+        self._map = np.clip(self._map, 0.0, 1.0)
 
 #         Is_avg = np.where(hist > 0)[0]
 #         M = []

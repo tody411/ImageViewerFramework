@@ -39,6 +39,6 @@ def shapeResultFiles(result_name):
     return datasetFiles(result_dir, file_filter=".png")
 
 
-def shapeResultFile(result_name, data_name):
+def shapeResultFile(result_name, data_name, file_ext=".png"):
     result_dir = shapeResultDir(result_name)
-    return os.path.join(result_dir, data_name + ".png")
+    return os.path.join(result_dir, data_name + file_ext)

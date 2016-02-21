@@ -12,6 +12,7 @@ from ivf.core.solver import image_solver
 from ivf.core.sfs.silhouette_normal import silhouetteNormal
 from ivf.cv.normal import normalizeImage
 from ivf.np.norm import l2NormVectors
+from ivf.core.sfs.lumo import computeNz
 
 
 def laplacian(image):
@@ -59,7 +60,7 @@ def brightnessConstraintsWithWeight(W_32F, L, I_32F, w_c=1.0):
         N_I = np.zeros_like(N_32F)
 
         for i in range(3):
-            N_I[:, :, i] = N_32F[:, :, i] +  dI[:, :] * L[i]
+            N_I[:, :, i] =  (N_32F[:, :, i] +  dI[:, :] * L[i])
         return w_c, N_I
     return func
 
@@ -96,6 +97,13 @@ def postNormalize(th=0.0):
         return N
     return func
 
+
+def postComputeNz():
+    def func(N_32F):
+        h, w = N_32F.shape[:2]
+        N_new = computeNz(N_32F.reshape(-1, 3)).reshape(h, w, 3)
+        return N_new
+    return func
 
 def NxyToNz(N_32F):
     N = N_32F.reshape(-1, 3)
