@@ -28,9 +28,16 @@ class Wu08SFS(ShapeFromShading):
     def __init__(self, L=None, C_32F=None, A_8U=None):
         super(Wu08SFS, self).__init__("Wu08", L, C_32F, A_8U)
         self._N0_32F = None
+        self._iterations = 20
 
     def setInitialNormal(self, N0_32F):
         self._N0_32F = N0_32F
+
+    def setNumIterations(self, iterations):
+        self._iterations = iterations
+
+    def setWeights(self, w_lap=1.0):
+        self._w_lap = w_lap
 
     def _runImp(self):
         if self._N0_32F is None:
@@ -61,7 +68,6 @@ class Wu08SFS(ShapeFromShading):
         N_32F = N.reshape(h, w, 3)
         self._N0_32F = N_32F
 
-
     @timing_func
     def _optimize(self):
         I_32F = self._I0_32F
@@ -83,13 +89,16 @@ class Wu08SFS(ShapeFromShading):
         A_8U = self._A_8U
 
         constraints = []
-        constraints.append(image_constraints.laplacianConstraints(w_c=0.5))
+        w_lap = self._w_lap
+        constraints.append(image_constraints.laplacianConstraints(w_c=w_lap))
         constraints.append(image_constraints.brightnessConstraints(L, I_32F, w_c=1.0))
-        constraints.append(image_constraints.silhouetteConstraints(A_8U, w_c=0.5))
+
+        w_sil = 0.2 * w_lap
+        constraints.append(image_constraints.silhouetteConstraints(A_8U, w_c=w_sil))
 
         solver_iter = image_solver.solveIterator(constraints,
                                                  [image_constraints.postNormalize(th=0.0)])
-        N = image_solver.solveMG(np.float64(N), solver_iter, iterations=20)
+        N = image_solver.solveMG(np.float64(N), solver_iter, iterations=self._iterations)
 
         self._N_32F = N.reshape(h, w, 3)
 

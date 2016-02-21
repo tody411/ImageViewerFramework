@@ -25,7 +25,7 @@ class ColorMapEstimation:
             Is = np.array(self._I0s)
         self._Is = Is
         self._map = None
-        self._map_size = 256
+        self._map_size = 512
         self._num_samples = num_samples
 
         self._compute()
@@ -93,7 +93,7 @@ class ColorMapEstimation:
             Im_max = max(I_map[mi], Im_max)
             I_map[mi] = Im_max
 
-        #I_map = Rbf(Ims, I_map, smooth=0.0005)(Ims)
+        I_map = Rbf(Ims, I_map, smooth=0.0005)(Ims)
 
 #         I_map[np.max(I0_ids):] = I_max
 

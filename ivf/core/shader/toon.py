@@ -17,8 +17,8 @@ from ivf.core.shader.half_lambert import HalfLambertShader
 
 class ToonShader(Shader):
     def __init__(self, borders=[0.5, 0.9], colors=[np.array([0.2, 0.2, 0.5]),
-                                              np.array([0.3, 0.3, 0.6]),
-                                              np.array([0.5, 0.5, 0.8])]):
+                                              np.array([0.4, 0.4, 0.6]),
+                                              np.array([0.6, 0.6, 0.8])]):
         super(ToonShader, self).__init__()
         self._borders = borders
         self._colors = colors

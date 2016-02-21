@@ -23,6 +23,8 @@ class ToonSFS(ShapeFromShading):
         self._N0_32F = None
         self._iterations = 40
         self._w_lap = 5.0
+        self._Cini_32F = C_32F
+        self._M = None
 
     def setInitialNormal(self, N0_32F):
         self._N0_32F = N0_32F
@@ -32,6 +34,18 @@ class ToonSFS(ShapeFromShading):
 
     def setWeights(self, w_lap=5.0):
         self._w_lap = w_lap
+
+    def initialShading(self):
+        return self._Cini_32F
+
+    def colorMap(self):
+        return self._M
+
+    def relighting(self, L):
+        N_32F = self._N_32F
+        LdN = LdotN(L, N_32F)
+
+        return self._M.shading(LdN.flatten()).reshape(self._C0_32F.shape)
 
     def _runImp(self):
         self._optimize()
@@ -51,6 +65,8 @@ class ToonSFS(ShapeFromShading):
 
         M = ColorMapEstimation(Cs, Is)
 
+        self._Cini_32F = M.shading(LdN.flatten()).reshape(self._C0_32F.shape)
+
         I_recovered = M.illumination(Cs)
         I_32F = np.zeros(LdN.shape)
         I_32F[:] = np.min(I_recovered)
@@ -68,7 +84,7 @@ class ToonSFS(ShapeFromShading):
         print "I_lap_median", np.median(I_lap[layer_area])
 
         sigma = 0.05
-        epsilon = 0.3 * I_lap_median
+        epsilon = 0.0 * I_lap_median
         w_min = 0.05
         w_max = 1.0
 
@@ -77,7 +93,7 @@ class ToonSFS(ShapeFromShading):
         W_32F[I_lap < epsilon] = w_min
         W_32F[I_lap > epsilon] = w_max
 
-        #W_32F[:, :] = 1.0
+        W_32F[:, :] = 1.0
 
         constraints = []
         #W_32F = np.ones(N0_32F.shape[:2])
@@ -87,7 +103,7 @@ class ToonSFS(ShapeFromShading):
         constraints.append(image_constraints.laplacianConstraints(w_c=w_lap))
         constraints.append(image_constraints.brightnessConstraintsWithWeight(W_32F, L, I_32F, w_c=1.0))
 
-        w_sil = 0.4 * w_lap
+        w_sil = 0.2 * w_lap
         constraints.append(image_constraints.silhouetteConstraints(A_8U, w_c=w_sil))
 
         N_32F = np.array(N0_32F, dtype=np.float64)
@@ -104,3 +120,4 @@ class ToonSFS(ShapeFromShading):
         I_32F[layer_area] = LdN[layer_area]
 
         self._C_32F = M.shading(I_32F.flatten()).reshape(self._C0_32F.shape)
+        self._M = M
