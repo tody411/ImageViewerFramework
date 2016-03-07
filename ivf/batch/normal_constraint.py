@@ -92,5 +92,5 @@ if __name__ == '__main__':
     tool = NormalConstraintTool()
     view.setTool(tool)
     batch = NormalConstraintBatch(view, tool)
-    view.setReturnCallback(batch.finishCharacter)
+    view.setReturnCallback(batch.finish)
     sys.exit(app.exec_())

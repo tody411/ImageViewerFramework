@@ -65,7 +65,7 @@ def relightingVideo(shape_name="Ogre", cmap_id=3):
     toon_sfs = ToonSFS(Lg, C0_32F, A_8U)
     toon_sfs.setInitialNormal(N0_32F)
     toon_sfs.setNumIterations(iterations=50)
-    toon_sfs.setWeights(w_lap=1.0)
+    toon_sfs.setWeights(w_lap=0.2)
     toon_sfs.run()
 
     N_toon = toon_sfs.normal()
@@ -141,8 +141,7 @@ def relightingFigure():
     Lg = normalizeVector(np.array([-0.2, 0.3, 0.5]))
     Lg_img = lightSphere(Lg)
 
-
-    L1 = normalizeVector(np.array([ 0.3, 0.5, 0.6]))
+    L1 = normalizeVector(np.array([0.3, 0.5, 0.6]))
 
     # Ls = [normalizeVector(Lg * (1.0 - t) + t * L1) for t in np.linspace(0.0, 1.0, num_lights) ]
     Ls = [normalizeVector(Lg + 0.5 * np.cos(t) * np.array(1, 0, 0) + 0.5 * np.sin(t) * np.array(0, 1, 0)) for t in np.linspace(0.0, 1.0, num_lights) ]
@@ -212,4 +211,4 @@ def relightingFigure():
     fig.savefig(file_path, transparent=True)
 
 if __name__ == '__main__':
-    relightingVideo(shape_name="Fertility", cmap_id=14)
+    relightingVideo(shape_name="Lucy", cmap_id=23)

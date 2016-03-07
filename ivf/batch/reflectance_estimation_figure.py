@@ -110,7 +110,7 @@ def reflectanceEstimationFigure():
     colormap_files = colorMapFiles()
     colormap_files = [colormap_files[M_error_order] for M_error_order in M_error_orders]
 
-    colormap_files = colormap_files[9:-2:2]
+    colormap_files = colormap_files[0:-1:3]
 
     Ms = []
     MLs = []

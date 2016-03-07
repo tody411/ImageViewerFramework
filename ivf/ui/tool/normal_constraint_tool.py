@@ -59,7 +59,7 @@ class NormalConstraintTool(BaseTool):
         print "p: ", self._selected_constraint.position()
         print "n: ", self._selected_constraint.normal()
         self._selected_constraint = None
-        self._interpolateNormal()
+        #self._interpolateNormal()
 
     def mouseMoveEvent(self, e):
         p = self._mousePosition(e)
