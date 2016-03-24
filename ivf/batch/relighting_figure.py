@@ -64,7 +64,7 @@ def relightingVideo(shape_name="Ogre", cmap_id=3):
 
     toon_sfs = ToonSFS(Lg, C0_32F, A_8U)
     toon_sfs.setInitialNormal(N0_32F)
-    toon_sfs.setNumIterations(iterations=50)
+    toon_sfs.setNumIterations(iterations=100)
     toon_sfs.setWeights(w_lap=0.2)
     toon_sfs.run()
 
@@ -164,7 +164,7 @@ def relightingFigure(shape_name="Vase", cmap_id=3):
     toon_sfs = ToonSFS(Lg, C0_32F, A_8U)
     toon_sfs.setInitialNormal(N0_32F)
     toon_sfs.setNumIterations(iterations=50)
-    toon_sfs.setWeights(w_lap=0.5)
+    toon_sfs.setWeights(w_lap=0.2)
     toon_sfs.run()
 
     N_toon = toon_sfs.normal()
@@ -210,4 +210,4 @@ def relightingFigure(shape_name="Vase", cmap_id=3):
     fig.savefig(file_path, transparent=True)
 
 if __name__ == '__main__':
-    relightingFigure(shape_name="Ogre", cmap_id=5)
+    relightingVideo(shape_name="Venus", cmap_id=4)

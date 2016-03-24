@@ -605,7 +605,7 @@ def shapeList():
     file_path = shapeResultFile("ShapeEstimation", "ShapeList")
     fig.savefig(file_path, transparent=True)
 
-def methodComparisonFigure():
+def methodComparisonFigure(shape_name="ThreeBox", cmap_id=10):
     num_methods = 3
     num_rows = 3
     num_cols = 2 * num_methods + 1
@@ -622,8 +622,6 @@ def methodComparisonFigure():
 
     L = normalizeVector(np.array([-0.4, 0.5, 0.6]))
 
-    shape_name = "ThreeBox"
-
     Ng_data = shapeFile(shape_name)
     Ng_data = loadNormal(Ng_data)
     Ng_32F, A_8U = Ng_data
@@ -633,15 +631,14 @@ def methodComparisonFigure():
     N0_32F, A_8U = N0_data
     A_8U = cv2.bilateralFilter(A_8U, 0, 5, 2)
 
-    cmap_id = 10
     colormap_file = colorMapFile(cmap_id)
     M_32F = loadColorMap(colormap_file)
     C0_32F = ColorMapShader(M_32F).diffuseShading(L, Ng_32F)
 
     toon_sfs = ToonSFS(L, C0_32F, A_8U)
     toon_sfs.setInitialNormal(N0_32F)
-    toon_sfs.setNumIterations(iterations=20)
-    toon_sfs.setWeights(w_lap=9.0)
+    toon_sfs.setNumIterations(iterations=100)
+    toon_sfs.setWeights(w_lap=0.1)
     toon_sfs.run()
 
     N_toon = toon_sfs.normal()
@@ -685,10 +682,11 @@ def methodComparisonFigure():
     plot_grid.showColorMap(I_error_toon, title, v_min=0, v_max=0.2, with_colorbar=True)
 
     # showMaximize()
-    file_path = shapeResultFile("ShapeEstimation", "ShapeMethodComparison", file_ext=".pdf")
+    file_path = shapeResultFile("ShapeEstimation", "Comparison_%s_%s" %(shape_name, cmap_id), file_ext=".png")
     fig.savefig(file_path, transparent=True)
 
 if __name__ == '__main__':
-    materialList()
-    showMaterialErrorTable()
+    methodComparisonFigure(shape_name="Venus", cmap_id=4)
+    #materialList()
+    #showMaterialErrorTable()
     # showShapeErrorTable()
