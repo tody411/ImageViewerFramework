@@ -122,7 +122,7 @@ def relightingVideo(shape_name="Ogre", cmap_id=3):
     saveVideo(file_path, images)
 
 
-def relightingFigure():
+def relightingFigure(shape_name="Vase", cmap_id=3):
     num_methods = 3
     num_lights = 2
     num_rows = num_lights + 1
@@ -141,12 +141,12 @@ def relightingFigure():
     Lg = normalizeVector(np.array([-0.2, 0.3, 0.5]))
     Lg_img = lightSphere(Lg)
 
-    L1 = normalizeVector(np.array([0.3, 0.5, 0.6]))
+    L1 = normalizeVector(np.array([0.0, 0.7, 0.6]))
+    L2 = normalizeVector(np.array([0.3, 0.5, 0.6]))
+
 
     # Ls = [normalizeVector(Lg * (1.0 - t) + t * L1) for t in np.linspace(0.0, 1.0, num_lights) ]
-    Ls = [normalizeVector(Lg + 0.5 * np.cos(t) * np.array(1, 0, 0) + 0.5 * np.sin(t) * np.array(0, 1, 0)) for t in np.linspace(0.0, 1.0, num_lights) ]
-
-    shape_name = "Vase"
+    Ls = [L1, L2]
 
     Ng_data = shapeFile(shape_name)
     Ng_data = loadNormal(Ng_data)
@@ -157,15 +157,14 @@ def relightingFigure():
     N0_32F, A_8U = N0_data
     A_8U = cv2.bilateralFilter(A_8U, 0, 5, 2)
 
-    cmap_id = 3
     colormap_file = colorMapFile(cmap_id)
     M_32F = loadColorMap(colormap_file)
     C0_32F = ColorMapShader(M_32F).diffuseShading(Lg, Ng_32F)
 
     toon_sfs = ToonSFS(Lg, C0_32F, A_8U)
     toon_sfs.setInitialNormal(N0_32F)
-    toon_sfs.setNumIterations(iterations=20)
-    toon_sfs.setWeights(w_lap=5.0)
+    toon_sfs.setNumIterations(iterations=50)
+    toon_sfs.setWeights(w_lap=0.5)
     toon_sfs.run()
 
     N_toon = toon_sfs.normal()
@@ -211,4 +210,4 @@ def relightingFigure():
     fig.savefig(file_path, transparent=True)
 
 if __name__ == '__main__':
-    relightingVideo(shape_name="Lucy", cmap_id=23)
+    relightingFigure(shape_name="Ogre", cmap_id=5)
