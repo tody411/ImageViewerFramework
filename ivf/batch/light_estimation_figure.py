@@ -112,7 +112,6 @@ def lightEstimationFigure():
     fig.subplots_adjust(left=0.02, right=0.98, top=0.98, bottom=0.02, hspace=0.05, wspace=0.05)
     fig.suptitle("", fontsize=font_size)
 
-
     plot_grid = SubplotGrid(num_rows, num_cols)
 
     Lg = normalizeVector(np.array([-0.2, 0.3, 0.6]))

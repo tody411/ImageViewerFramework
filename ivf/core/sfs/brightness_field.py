@@ -10,7 +10,7 @@
 import numpy as np
 import scipy.sparse
 import cv2
-from ivf.core.sfs.constraints import laplacianMatrix
+from ivf.core.sfs.amg_constraints import laplacianMatrix
 from ivf.core.solver import amg_solver
 from ivf.core.sfs.lumo import computeNz
 from ivf.np.norm import normalizeVectors

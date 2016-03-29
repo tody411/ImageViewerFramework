@@ -5,6 +5,8 @@
 #  @author      tody
 #  @date        2015/07/29
 
+import numpy as np
+
 from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
@@ -46,6 +48,10 @@ class SubplotGrid:
                 self._fig.add_axes(ax_cb)
                 plt.colorbar(cax=ax_cb, ticks=[v_min, v_max])
             else:
+                if v_min == None:
+                    v_min = np.min(image)
+                if v_max == None:
+                    v_max = np.max(image)
                 plt.colorbar(ticks=[v_min, 0.5 * (v_min + v_max) ,v_max])
         self._plot_id += 1
         return image_plt
