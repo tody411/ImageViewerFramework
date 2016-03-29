@@ -17,7 +17,7 @@ from ivf.core.shader.light_sphere import lightSphere, lightSphereWithBG, lightSp
 from ivf.io_util.image import loadNormal
 from ivf.core.shader.toon import ColorMapShader
 from ivf.cv.image import luminance
-from ivf.core.sfs.light_estimation import lightEstimation
+from ivf.core.sfs.light_estimation import lightEstimation, lightEstimationByVoting
 from ivf.cv.normal import normalToColor
 from ivf.core.sfs.angle_error import angleError
 from ivf.util.timer import timing_func
@@ -154,7 +154,6 @@ def lightEstimationFigure():
             L_img = lightSphereColorMap(L, v=L_errors[si, mi], v_min=0, v_max=40)
 
             plot_grid.showImage(L_img, "")
-
 
     L_error_min, L_error_max = np.min(L_errors), np.max(L_errors)
 

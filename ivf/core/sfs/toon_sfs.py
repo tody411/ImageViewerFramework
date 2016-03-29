@@ -74,7 +74,7 @@ class ToonSFS(ShapeFromShading):
 
         I_dog = DoG(I_32F, sigma=2.0)
         sigma = 2.0
-        I_32F = cv2.GaussianBlur(I_32F, (0, 0), sigma)
+        I_32F = np.float32(cv2.GaussianBlur(I_32F, (0, 0), sigma))
         I_lap = -cv2.Laplacian(np.float32(I_32F), cv2.CV_32F, ksize=1)
 
         I_lap = np.abs(I_lap)
@@ -101,9 +101,10 @@ class ToonSFS(ShapeFromShading):
 
         w_lap = self._w_lap
         constraints.append(image_constraints.laplacianConstraints(w_c=w_lap))
-        constraints.append(image_constraints.brightnessConstraintsWithWeight(W_32F, L, I_32F, w_c=1.0))
+        constraints.append(image_constraints.brightnessConstraints(L, I_32F, w_c=1.0))
+        #constraints.append(image_constraints.gradientConstraints(L, I_32F, w_c=0.15))
 
-        w_sil = 0.2 * w_lap
+        w_sil = 0.4 * w_lap
         constraints.append(image_constraints.silhouetteConstraints(A_8U, w_c=w_sil))
 
         N_32F = np.array(N0_32F, dtype=np.float64)

@@ -44,6 +44,35 @@ def brightnessConstraints(L, I_32F, w_c=1.0):
     return func
 
 
+def gradientConstraints(L, I_32F, w_c=1.0):
+    I_level = image_solver.LevelImage(I_32F)
+
+    def func(N_32F):
+        I_32F_level = I_level.level(N_32F)
+        NL_positive = I_32F_level > np.min(I_32F_level)
+        Ix = cv2.Sobel(I_32F_level, ddepth=cv2.cv.CV_32F, dx=1, dy=0, ksize=3)
+        Iy = cv2.Sobel(I_32F_level, ddepth=cv2.cv.CV_32F, dx=0, dy=1, ksize=3)
+        h, w = N_32F.shape[:2]
+
+        NL = np.dot(N_32F.reshape(-1, 3), L)
+
+        NL = np.clip(NL, 0.0, 1.0)
+        NL = NL.reshape(h, w)
+        NLx = cv2.Sobel(np.float32(NL), ddepth=cv2.cv.CV_32F, dx=1, dy=0, ksize=3)
+        NLy = cv2.Sobel(np.float32(NL), ddepth=cv2.cv.CV_32F, dx=0, dy=1, ksize=3)
+
+        dIx = Ix - NLx
+        dIy = Iy - NLy
+
+        N_I = np.zeros_like(N_32F)
+
+        dI = dIx + dIy
+
+        for i in range(3):
+            N_I[NL_positive, i] = N_32F[NL_positive, i] + dI[NL_positive] * L[i]
+        return w_c, N_I
+    return func
+
 def brightnessConstraintsWithWeight(W_32F, L, I_32F, w_c=1.0):
     I_level = image_solver.LevelImage(I_32F)
     W_level = image_solver.LevelImage(W_32F)

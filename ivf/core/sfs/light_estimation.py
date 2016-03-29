@@ -54,15 +54,27 @@ def lightEstimationByVoting(W_32F, N_32F, A_8U=None):
 
     N = N_32F.reshape(-1, 3)
     if A_8U is not None:
-        W = W_32F[A_8U > 0.5 * np.max(A_8U)]
-        N = N_32F[A_8U > 0.5 * np.max(A_8U), :]
+        W = W_32F[A_8U > 0.9 * np.max(A_8U)]
+        N = N_32F[A_8U > 0.9 * np.max(A_8U), :]
 
     num_samples = 2000
     sample_ids = np.random.randint(len(W) - 1, size=num_samples)
 
     W = W[sample_ids]
-    N = N[sample_ids]
+    N = N[sample_ids, :]
 
+    N_min = np.min(N[:, 2])
+    N_max = np.max(N[:, 2])
+    xy_samples = N[:, 2] > N_min + 0.1 * (N_max - N_min)
+
+    W = W[xy_samples]
+    N = N[xy_samples, :]
+
+    xy_samples = N[:, 2] < N_min + 0.3 * (N_max - N_min)
+    W = W[xy_samples]
+    N = N[xy_samples, :]
+
+    print np.min(W), np.max(W)
     W /= np.max(W)
     W = W ** 1.0
 

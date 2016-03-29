@@ -651,7 +651,6 @@ def methodComparisonFigure(shape_name="ThreeBox", cmap_id=10):
     C_error_lumo, N_error_lumo, I_error_lumo = computeErrors(L, C0_32F, C_lumo, Ng_32F, N_lumo, A_8U)
     C_error_wu, N_error_wu, I_error_wu = computeErrors(L, C0_32F, C_wu, Ng_32F, N_wu, A_8U)
 
-
     plot_grid.showImage(setAlpha(C0_32F, to32F(A_8U)), "Ground-truth")
 
     title = ""
@@ -673,7 +672,6 @@ def methodComparisonFigure(shape_name="ThreeBox", cmap_id=10):
 
     plot_grid.showImage(computeIllumination(L, Ng_32F, A_8U), title)
 
-
     plot_grid.showImage(computeIllumination(L, N_lumo, A_8U), title)
     plot_grid.showColorMap(I_error_lumo, title, v_min=0, v_max=0.2, with_colorbar=True)
     plot_grid.showImage(computeIllumination(L, N_wu, A_8U), title)
@@ -686,7 +684,7 @@ def methodComparisonFigure(shape_name="ThreeBox", cmap_id=10):
     fig.savefig(file_path, transparent=True)
 
 if __name__ == '__main__':
-    methodComparisonFigure(shape_name="Venus", cmap_id=4)
+    methodComparisonFigure(shape_name="Man", cmap_id=1)
     #materialList()
     #showMaterialErrorTable()
     # showShapeErrorTable()

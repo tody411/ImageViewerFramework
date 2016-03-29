@@ -92,6 +92,7 @@ class Wu08SFS(ShapeFromShading):
         w_lap = self._w_lap
         constraints.append(image_constraints.laplacianConstraints(w_c=w_lap))
         constraints.append(image_constraints.brightnessConstraints(L, I_32F, w_c=1.0))
+        # constraints.append(image_constraints.gradientConstraints(L, I_32F, w_c=0.3))
 
         w_sil = 0.2 * w_lap
         constraints.append(image_constraints.silhouetteConstraints(A_8U, w_c=w_sil))

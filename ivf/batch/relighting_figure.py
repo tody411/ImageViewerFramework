@@ -210,4 +210,4 @@ def relightingFigure(shape_name="Vase", cmap_id=3):
     fig.savefig(file_path, transparent=True)
 
 if __name__ == '__main__':
-    relightingVideo(shape_name="Venus", cmap_id=4)
+    relightingFigure(shape_name="Venus", cmap_id=4)
