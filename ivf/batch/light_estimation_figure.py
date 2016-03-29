@@ -13,7 +13,7 @@ from ivf.datasets.colormap import colorMapFiles, loadColorMap, colorMapFile
 from ivf.datasets.shape import shapeFiles, shapeNames, shapeFile, shapeResultFile
 from ivf.core.sfs.colormap_sphere import colorMapSphere
 from ivf.np.norm import normalizeVector
-from ivf.core.shader.light_sphere import lightSphere
+from ivf.core.shader.light_sphere import lightSphere, lightSphereWithBG, lightSphereColorMap
 from ivf.io_util.image import loadNormal
 from ivf.core.shader.toon import ColorMapShader
 from ivf.cv.image import luminance
@@ -149,11 +149,12 @@ def lightEstimationFigure():
             I_32F = luminance(C0_32F)
 
             L = lightEstimation(I_32F, N0_32F, A_8U)
-            L_img = lightSphere(L)
+            L_errors[si, mi] = angleError(Lg, L)
+
+            L_img = lightSphereColorMap(L, v=L_errors[si, mi], v_min=0, v_max=40)
 
             plot_grid.showImage(L_img, "")
 
-            L_errors[si, mi] = angleError(Lg, L)
 
     L_error_min, L_error_max = np.min(L_errors), np.max(L_errors)
 
@@ -162,4 +163,4 @@ def lightEstimationFigure():
 
 
 if __name__ == '__main__':
-    errorInfo()
+    lightEstimationFigure()

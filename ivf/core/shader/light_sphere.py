@@ -43,3 +43,34 @@ def lightSphere(L, h=256, w=256):
     I_32F = I_32F * A_32F
     return I_32F
 
+
+## Light sphere image for the light direction.
+def lightSphereWithBG(L, h=256, w=256, bg_color=np.array([1.0, 0.0, 0.0])):
+    L = normalizeVector(L)
+
+    N_32F, A_32F = normalSphere(h, w)
+    I_32F = diffuse(N_32F, L)
+
+    C_32F = np.zeros(N_32F.shape)
+    C_32F[:, :] = bg_color
+
+    for ci in xrange(3):
+        C_32F[:, :, ci] = I_32F * A_32F + (1.0 - A_32F) * C_32F[:, :, ci]
+
+    return np.clip(C_32F, 0.0, 1.0)
+
+
+def lightSphereColorMap(L, h=256, w=256, v=0.0, v_min=0.0, v_max=1.0):
+    t = (v - v_min) / (v_max - v_min)
+
+    r = np.array([1.0, 0.0, 0.0])
+    g = np.array([0.0, 1.0, 0.0])
+    b = np.array([0.0, 0.0, 1.0])
+
+    t1 = np.clip(2.0 * t, 0.0, 1.0)
+    bg_color = (1.0 - t1) * b + t1 * g
+
+    t2 = np.clip(2.0 * (t - 0.5), 0.0, 1.0)
+    bg_color = (1.0 - t2) * bg_color + t2 * r
+
+    return lightSphereWithBG(L, h, w, bg_color)
