@@ -133,6 +133,7 @@ def LambertShadingFigure():
         sfs_method = ToonSFS(L, C0_32F, A_8U)
         sfs_method.setInitialNormal(N0_32F)
         sfs_method.setNumIterations(iterations=70)
+        sfs_method.setWeights(w_lap=1.0)
         sfs_method.run()
         N_32F = sfs_method.normal()
         C_32F = sfs_method.shading()
@@ -684,7 +685,8 @@ def methodComparisonFigure(shape_name="ThreeBox", cmap_id=10):
     fig.savefig(file_path, transparent=True)
 
 if __name__ == '__main__':
-    methodComparisonFigure(shape_name="Ogre", cmap_id=5)
+    LambertShadingFigure()
+    #methodComparisonFigure(shape_name="Ogre", cmap_id=5)
     #materialList()
     #showMaterialErrorTable()
     # showShapeErrorTable()
