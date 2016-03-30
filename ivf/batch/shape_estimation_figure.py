@@ -684,7 +684,7 @@ def methodComparisonFigure(shape_name="ThreeBox", cmap_id=10):
     fig.savefig(file_path, transparent=True)
 
 if __name__ == '__main__':
-    methodComparisonFigure(shape_name="Man", cmap_id=1)
+    methodComparisonFigure(shape_name="Ogre", cmap_id=5)
     #materialList()
     #showMaterialErrorTable()
     # showShapeErrorTable()

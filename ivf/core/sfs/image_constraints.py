@@ -57,16 +57,16 @@ def gradientConstraints(L, I_32F, w_c=1.0):
         NL = np.dot(N_32F.reshape(-1, 3), L)
 
         NL = np.clip(NL, 0.0, 1.0)
-        NL = NL.reshape(h, w)
-        NLx = cv2.Sobel(np.float32(NL), ddepth=cv2.cv.CV_32F, dx=1, dy=0, ksize=3)
-        NLy = cv2.Sobel(np.float32(NL), ddepth=cv2.cv.CV_32F, dx=0, dy=1, ksize=3)
+        NL = np.float32(NL.reshape(h, w))
+        NLx = cv2.Sobel(NL, ddepth=cv2.cv.CV_32F, dx=1, dy=0, ksize=3)
+        NLy = cv2.Sobel(NL, ddepth=cv2.cv.CV_32F, dx=0, dy=1, ksize=3)
 
         dIx = Ix - NLx
         dIy = Iy - NLy
 
         N_I = np.zeros_like(N_32F)
 
-        dI = dIx + dIy
+        dI = 0.5 * (dIx + dIy)
 
         for i in range(3):
             N_I[NL_positive, i] = N_32F[NL_positive, i] + dI[NL_positive] * L[i]
